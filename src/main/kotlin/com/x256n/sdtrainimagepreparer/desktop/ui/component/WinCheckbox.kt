@@ -31,7 +31,10 @@ fun WinCheckbox(
                     .padding(2.dp),
                 checked = isChecked,
                 enabled = enabled,
-                colors = CheckboxDefaults.colors(checkedColor = Color.DarkGray),
+                colors = CheckboxDefaults.colors(
+                    checkedColor = Color.DarkGray,
+                    disabledColor = MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.disabled + 0.1f)
+                ),
                 onCheckedChange = onCheckedChange
             )
         }

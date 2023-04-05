@@ -3,6 +3,7 @@ package com.x256n.sdtrainimagepreparer.desktop
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -25,6 +26,7 @@ import org.koin.core.logger.PrintLogger
 import org.koin.dsl.module
 import java.awt.Dimension
 
+@ExperimentalMaterialApi
 @ExperimentalNavigationApi
 @ExperimentalSerializationApi
 @ExperimentalFoundationApi

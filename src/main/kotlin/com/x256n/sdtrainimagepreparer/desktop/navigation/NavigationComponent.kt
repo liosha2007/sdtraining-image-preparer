@@ -1,6 +1,7 @@
 package com.x256n.sdtrainimagepreparer.desktop.navigation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.FrameWindowScope
@@ -19,6 +20,7 @@ import org.koin.java.KoinJavaComponent.inject
 
 typealias Navigator<T> = ComposeNavigatorByKey<T, Destinations>
 
+@ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalNavigationApi
