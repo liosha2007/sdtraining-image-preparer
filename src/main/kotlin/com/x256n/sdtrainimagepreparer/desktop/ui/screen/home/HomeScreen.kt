@@ -1,4 +1,4 @@
-package com.x256n.sdtrainimagepreparer.desktop.screen.home
+package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.PointerMatcher

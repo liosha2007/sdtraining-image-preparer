@@ -5,8 +5,10 @@ import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainimagepreparer.desktop.repository.SampleModelRepository
 import com.x256n.sdtrainimagepreparer.desktop.repository.SampleModelRepositoryImpl
-import com.x256n.sdtrainimagepreparer.desktop.screen.config.ConfigViewModel
-import com.x256n.sdtrainimagepreparer.desktop.screen.home.HomeViewModel
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.about.AboutViewModel
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.createproject.CreateProjectViewModel
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.settings.SettingsViewModel
+import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeViewModel
 import com.x256n.sdtrainimagepreparer.desktop.usecase.DoSampleModelUseCase
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
@@ -20,7 +22,9 @@ object ModulesInjection {
                 doSampleModel = get()
             )
         }
-        singleOf(::ConfigViewModel)
+        singleOf(::AboutViewModel)
+        singleOf(::SettingsViewModel)
+        singleOf(::CreateProjectViewModel)
     }
     val usecaseBeans = module {
         singleOf(::DoSampleModelUseCase)

@@ -1,4 +1,4 @@
-package com.x256n.sdtrainimagepreparer.desktop.screen.component
+package com.x256n.sdtrainimagepreparer.desktop.ui.screen.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.MenuBarScope
@@ -14,7 +14,9 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
         Item(
             "New project...",
             mnemonic = 'N',
-            onClick = { println("New project") }
+            onClick = {
+                navigator.goTo(Destinations.CreateProject)
+            }
         )
         Item(
             "Open project...",
@@ -49,7 +51,7 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
             "Settings...",
             mnemonic = 'S',
             onClick = {
-                navigator.goTo(Destinations.Config())
+                navigator.goTo(Destinations.Settings)
             }
         )
     }

@@ -1,4 +1,4 @@
-package com.x256n.sdtrainimagepreparer.desktop.screen.home
+package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
 import com.x256n.sdtrainimagepreparer.desktop.model.SampleModel
 import kotlinx.coroutines.Job

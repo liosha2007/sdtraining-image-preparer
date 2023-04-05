@@ -9,11 +9,12 @@ import com.chrynan.navigation.ExperimentalNavigationApi
 import com.chrynan.navigation.compose.ComposeNavigatorByKey
 import com.chrynan.navigation.compose.NavContainer
 import com.chrynan.navigation.compose.rememberNavigatorByKey
-import com.x256n.sdtrainimagepreparer.desktop.screen.component.MainMenu
-import com.x256n.sdtrainimagepreparer.desktop.screen.config.ConfigScreen
-import com.x256n.sdtrainimagepreparer.desktop.screen.config.ConfigViewModel
-import com.x256n.sdtrainimagepreparer.desktop.screen.home.HomeScreen
-import com.x256n.sdtrainimagepreparer.desktop.screen.home.HomeViewModel
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.about.AboutDialog
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.createproject.CreateProjectDialog
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.settings.SettingsDialog
+import com.x256n.sdtrainimagepreparer.desktop.ui.screen.component.MainMenu
+import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeScreen
+import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeViewModel
 import org.koin.java.KoinJavaComponent.inject
 
 typealias Navigator<T> = ComposeNavigatorByKey<T, Destinations>
@@ -28,17 +29,12 @@ fun FrameWindowScope.NavigationComponent() {
         MenuBar {
             MainMenu(navigator)
         }
-        when (dest) {
-            is Destinations.Home -> {
-                val viewModel by inject<HomeViewModel>(HomeViewModel::class.java)
-                HomeScreen(viewModel, navigator)
-            }
-            is Destinations.Config -> {
-                val viewModel by inject<ConfigViewModel>(ConfigViewModel::class.java)
-                ConfigScreen(viewModel, navigator)
-            }
-            else -> throw IllegalStateException("Unknown destination! Check NavigationComponent.")
-        }
+        val viewModel by inject<HomeViewModel>(HomeViewModel::class.java)
+        HomeScreen(viewModel, navigator)
+
+        CreateProjectDialog(navigator, isDialogVisible = dest is Destinations.CreateProject)
+        SettingsDialog(navigator, isDialogVisible = dest is Destinations.Settings)
+        AboutDialog(navigator, isDialogVisible = dest is Destinations.About)
     }
     NavContainer(navigator)
 }
