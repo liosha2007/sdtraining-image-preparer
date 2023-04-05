@@ -8,7 +8,7 @@ sealed class Destinations : NavigationContext<Destinations> {
         enum class Action { Undefined, Save, Delete }
     }
     data class Config(val character: SampleModel? = null) : Destinations()
-    data class About(val test: String) : Destinations()
+    object About : Destinations()
 
     override val initialKey: Destinations
         get() = Home()

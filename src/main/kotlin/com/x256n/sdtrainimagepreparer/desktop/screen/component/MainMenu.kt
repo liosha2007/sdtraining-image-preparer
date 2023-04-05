@@ -2,51 +2,65 @@ package com.x256n.sdtrainimagepreparer.desktop.screen.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.MenuBarScope
+import com.chrynan.navigation.ExperimentalNavigationApi
+import com.chrynan.navigation.compose.ComposeNavigatorByKey
+import com.chrynan.navigation.compose.goTo
+import com.x256n.sdtrainimagepreparer.desktop.navigation.Destinations
 
+@ExperimentalNavigationApi
 @Composable
-fun MenuBarScope.MainMenu() = Menu("File") {
-    Item(
-        "Reset",
-        mnemonic = 'R',
-//        shortcut = KeyShortcut(Key.R, ctrl = true),
-        onClick = { println("Reset") }
-    )
-    CheckboxItem(
-        "Advanced settings",
-        mnemonic = 'A',
-        checked = true,
-        onCheckedChange = { /*isAdvancedSettings = !isAdvancedSettings*/ }
-    )
-    Menu("Theme") {
+fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destinations>) {
+    Menu("File") {
         Item(
-            "Item 1",
-//        shortcut = KeyShortcut(Key.R, ctrl = true),
-            onClick = { println("Item 1") }
+            "New project...",
+            mnemonic = 'N',
+            onClick = { println("New project") }
         )
         Item(
-            "Item 2",
-//        shortcut = KeyShortcut(Key.R, ctrl = true),
-            onClick = { println("Item 2") }
+            "Open project...",
+            mnemonic = 'O',
+            onClick = { println("Open project") }
         )
-//        RadioButtonItem(
-//            "Light",
-//            mnemonic = 'L',
-//            icon = ColorCircle(Color.LightGray),
-//            selected = theme == Theme.Light,
-//            onClick = { theme = Theme.Light }
-//        )
-//        RadioButtonItem(
-//            "Dark",
-//            mnemonic = 'D',
-//            icon = ColorCircle(Color.DarkGray),
-//            selected = theme == Theme.Dark,
-//            onClick = { theme = Theme.Dark }
-//        )
+        CheckboxItem(
+            "Advanced settings",
+            mnemonic = 'A',
+            checked = true,
+            onCheckedChange = { /*isAdvancedSettings = !isAdvancedSettings*/ }
+        )
+        Menu("Theme") {
+            Item(
+                "Item 1",
+                onClick = { println("Item 1") }
+            )
+            Item(
+                "Item 2",
+                onClick = { println("Item 2") }
+            )
+        }
+        Item(
+            "Exit",
+            mnemonic = 'Q',
+            onClick = { println("Exit") }
+        )
     }
-    Item(
-        "Exit",
-        mnemonic = 'Q',
-//        shortcut = KeyShortcut(Key.R, ctrl = true),
-        onClick = { println("Exit") }
-    )
+
+    Menu("Options") {
+        Item(
+            "Settings...",
+            mnemonic = 'S',
+            onClick = {
+                navigator.goTo(Destinations.Config())
+            }
+        )
+    }
+
+    Menu("Help") {
+        Item(
+            "About",
+            mnemonic = 'A',
+            onClick = {
+                navigator.goTo(Destinations.About)
+            }
+        )
+    }
 }

@@ -13,6 +13,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.chrynan.navigation.ExperimentalNavigationApi
 import com.x256n.sdtrainimagepreparer.desktop.di.ModulesInjection
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainimagepreparer.desktop.navigation.NavigationComponent
@@ -24,6 +25,7 @@ import org.koin.core.logger.PrintLogger
 import org.koin.dsl.module
 import java.awt.Dimension
 
+@ExperimentalNavigationApi
 @ExperimentalSerializationApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
@@ -45,7 +47,7 @@ fun main() {
                 position = WindowPosition.Aligned(Alignment.Center)
             )
         ) {
-            this.window.minimumSize = Dimension(256, 168)
+            this.window.minimumSize = Dimension(640, 480)
             MaterialTheme {
                 DefaultTheme {
                     Box(

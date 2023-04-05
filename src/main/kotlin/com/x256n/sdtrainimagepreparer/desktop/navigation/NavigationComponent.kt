@@ -3,10 +3,13 @@ package com.x256n.sdtrainimagepreparer.desktop.navigation
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.window.FrameWindowScope
+import androidx.compose.ui.window.MenuBar
 import com.chrynan.navigation.ExperimentalNavigationApi
 import com.chrynan.navigation.compose.ComposeNavigatorByKey
 import com.chrynan.navigation.compose.NavContainer
 import com.chrynan.navigation.compose.rememberNavigatorByKey
+import com.x256n.sdtrainimagepreparer.desktop.screen.component.MainMenu
 import com.x256n.sdtrainimagepreparer.desktop.screen.config.ConfigScreen
 import com.x256n.sdtrainimagepreparer.desktop.screen.config.ConfigViewModel
 import com.x256n.sdtrainimagepreparer.desktop.screen.home.HomeScreen
@@ -19,8 +22,12 @@ typealias Navigator<T> = ComposeNavigatorByKey<T, Destinations>
 @ExperimentalComposeUiApi
 @ExperimentalNavigationApi
 @Composable
-fun NavigationComponent() {
+fun FrameWindowScope.NavigationComponent() {
     val navigator = rememberNavigatorByKey<Destinations, Destinations>(initialContext = Destinations.Home()) { dest ->
+
+        MenuBar {
+            MainMenu(navigator)
+        }
         when (dest) {
             is Destinations.Home -> {
                 val viewModel by inject<HomeViewModel>(HomeViewModel::class.java)
@@ -33,6 +40,5 @@ fun NavigationComponent() {
             else -> throw IllegalStateException("Unknown destination! Check NavigationComponent.")
         }
     }
-
     NavContainer(navigator)
 }
