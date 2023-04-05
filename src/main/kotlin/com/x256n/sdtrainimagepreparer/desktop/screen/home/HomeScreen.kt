@@ -1,21 +1,28 @@
 package com.x256n.sdtrainimagepreparer.desktop.screen.home
 
-import WinButton
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.PointerMatcher
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.chrynan.navigation.ExperimentalNavigationApi
-import com.chrynan.navigation.compose.goTo
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Navigator
 import com.x256n.sdtrainimagepreparer.desktop.theme.spaces
+import java.awt.Cursor
 
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
@@ -36,18 +43,48 @@ fun HomeScreen(viewModel: HomeViewModel, navigator: Navigator<Destinations>) {
                 .fillMaxSize()
         ) {
 
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(MaterialTheme.spaces.extraSmall)
             ) {
-                WinButton(text = "Config", onClick = {
-                    navigator.goTo(Destinations.Config())
-                })
-                Spacer(
+                var explorerPanelWidth by remember { mutableStateOf(168.dp) }
+                var previewPanelSize by remember { mutableStateOf(IntSize.Zero) }
+                val spacerWidth = 10.dp
+
+                Column(
                     modifier = Modifier
-                        .height(MaterialTheme.spaces.medium)
-                )
+                        .fillMaxHeight()
+                        .background(Color.Blue)
+                        .width(explorerPanelWidth)
+                ) {
+
+                }
+                Spacer(modifier = Modifier
+                    .background(Color.Gray)
+                    .fillMaxHeight()
+                    .width(spacerWidth)
+                    .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)))
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            matcher = PointerMatcher.Primary
+                        ) {
+                            if (previewPanelSize.width.dp > spacerWidth || it.x < 0) {
+                                explorerPanelWidth += it.x.dp
+                            }
+                        }
+                    })
+                Column(
+                    modifier = Modifier
+                        .background(Color.Yellow)
+                        .fillMaxHeight()
+                        .onSizeChanged {
+                            previewPanelSize = it
+                        }
+                        .weight(1f)
+                ) {
+
+                }
             }
         }
     } else {
