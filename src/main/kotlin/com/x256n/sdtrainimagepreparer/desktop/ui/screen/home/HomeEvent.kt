@@ -6,4 +6,5 @@ sealed class HomeEvent {
     object HomeDisplayed : HomeEvent()
     data class LoadProject(val projectDirectory: Path) : HomeEvent()
     object OpenProject : HomeEvent()
+    data class ImageSelected(val index: Int) : HomeEvent()
 }

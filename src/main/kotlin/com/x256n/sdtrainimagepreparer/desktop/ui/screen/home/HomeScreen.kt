@@ -1,9 +1,6 @@
 package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.PointerMatcher
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,15 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.FrameWindowScope
@@ -35,14 +29,13 @@ import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Navigator
 import com.x256n.sdtrainimagepreparer.desktop.theme.spaces
+import com.x256n.sdtrainimagepreparer.desktop.ui.component.AsyncImage
+import com.x256n.sdtrainimagepreparer.desktop.ui.component.pathPainter
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.component.MainMenu
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent
 import java.awt.Cursor
-import java.io.IOException
 import java.nio.file.Path
-import kotlin.io.path.inputStream
+import kotlin.io.path.name
 
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
@@ -88,12 +81,13 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
             ) {
                 var explorerPanelWidth by remember { mutableStateOf(168.dp) }
                 var previewPanelSize by remember { mutableStateOf(IntSize.Zero) }
-                val spacerWidth = 10.dp
+                var tagsPanelWidth by remember { mutableStateOf(168.dp) }
+                var captionPanelHeight by remember { mutableStateOf(64.dp) }
+                val spacerSize = 10.dp
 
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .background(Color.Blue)
                         .width(explorerPanelWidth)
                 ) {
                     LazyColumn(
@@ -102,9 +96,14 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                     ) {
                         itemsIndexed(state.data) { index, item ->
                             AsyncImage(
+                                modifier = Modifier
+                                    .clickable {
+                                        viewModel.onEvent(HomeEvent.ImageSelected(index))
+                                    },
                                 load = {
                                     pathPainter(item.imagePath)
                                 },
+                                initialImage = painterResource("icon.ico"),
                                 painterFor = { remember { BitmapPainter(it) } },
                                 contentDescription = "Image $index"
                             )
@@ -114,31 +113,92 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                 Spacer(modifier = Modifier
                     .background(Color.Gray)
                     .fillMaxHeight()
-                    .width(spacerWidth)
+                    .width(spacerSize)
                     .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)))
                     .pointerInput(Unit) {
                         detectDragGestures(
                             matcher = PointerMatcher.Primary
                         ) {
-                            if (previewPanelSize.width.dp > spacerWidth || it.x < 0) {
+                            if (previewPanelSize.width.dp > spacerSize || it.x < 0) {
                                 explorerPanelWidth += it.x.dp
                             }
                         }
                     })
                 Column(
                     modifier = Modifier
-                        .background(Color.Yellow)
                         .fillMaxHeight()
+                        .background(Color.Yellow)
                         .onSizeChanged {
                             previewPanelSize = it
                         }
                         .weight(1f)
                 ) {
-                    state.projectDirectory?.let {
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        if (state.data.isNotEmpty()) {
+                            Image(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                painter = BitmapPainter(pathPainter(state.currentModel.imagePath)),
+                                contentDescription = state.currentModel.imagePath.name
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier
+                        .background(Color.Gray)
+                        .fillMaxWidth()
+                        .height(spacerSize)
+                        .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR)))
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                matcher = PointerMatcher.Primary
+                            ) {
+                                if (previewPanelSize.height.dp > spacerSize || it.y > 0) {
+                                    captionPanelHeight -= it.y.dp
+                                }
+                            }
+                        })
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Cyan)
+                            .height(captionPanelHeight)
+                    ) {
                         Text(
-                            text = it.toString()
+                            text = "Caption"
                         )
                     }
+
+                }
+                Spacer(modifier = Modifier
+                    .background(Color.Gray)
+                    .fillMaxHeight()
+                    .width(spacerSize)
+                    .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)))
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            matcher = PointerMatcher.Primary
+                        ) {
+                            if (previewPanelSize.width.dp > spacerSize || it.x < 0) {
+                                tagsPanelWidth -= it.x.dp
+                            }
+                        }
+                    })
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .background(Color.Green)
+                        .width(tagsPanelWidth)
+                ) {
+                    Text(
+                        text = "Tags"
+                    )
                 }
             }
         }
@@ -153,37 +213,3 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
         }
     }
 }
-
-@Composable
-fun <T> AsyncImage(
-    load: suspend () -> T,
-    painterFor: @Composable (T) -> Painter,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    contentScale: ContentScale = ContentScale.Fit,
-) {
-    val image: T? by produceState<T?>(null) {
-        value = withContext(Dispatchers.IO) {
-            try {
-                load()
-            } catch (e: IOException) {
-                // instead of printing to console, you can also write this to log,
-                // or show some error placeholder
-                e.printStackTrace()
-                null
-            }
-        }
-    }
-
-    if (image != null) {
-        Image(
-            painter = painterFor(image!!),
-            contentDescription = contentDescription,
-            contentScale = contentScale,
-            modifier = modifier
-        )
-    }
-}
-
-fun pathPainter(path: Path): ImageBitmap =
-    path.toFile().inputStream().buffered().use(::loadImageBitmap)

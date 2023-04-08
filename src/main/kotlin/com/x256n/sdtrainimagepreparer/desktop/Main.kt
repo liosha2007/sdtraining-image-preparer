@@ -44,8 +44,8 @@ fun main() {
             icon = painterResource("icon.ico"),
             resizable = true,
             state = WindowState(
-                width = 640.dp,
-                height = 480.dp,
+                width = 840.dp,
+                height = 560.dp,
                 position = WindowPosition.Aligned(Alignment.Center)
             )
         ) {

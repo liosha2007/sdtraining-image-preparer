@@ -15,6 +15,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 
 class HomeViewModel(
@@ -44,6 +45,9 @@ class HomeViewModel(
                 is HomeEvent.LoadProject -> {
                     loadProject(event.projectDirectory)
                 }
+                is HomeEvent.ImageSelected -> {
+                    imageSelected(event.index)
+                }
 
                 else -> {
                     TODO("Not implemented: $event")
@@ -51,6 +55,11 @@ class HomeViewModel(
             }
             _state.value = state.value.copy(isLoading = false)
         }
+    }
+
+    private fun imageSelected(index: Int) {
+        _state.value = state.value.copy(dataIndex = index)
+        _log.debug("Selected image: index = $index, name = ${state.value.currentModel.imagePath.name}")
     }
 
     private suspend fun loadProject(projectDirectory: Path) {

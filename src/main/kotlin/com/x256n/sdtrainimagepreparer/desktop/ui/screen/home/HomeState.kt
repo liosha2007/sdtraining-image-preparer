@@ -10,4 +10,6 @@ data class HomeState(
     val isOpenProject: Boolean = false,
     val data: List<ImageModel> = emptyList(),
     val dataIndex: Int = 0
-)
+) {
+    val currentModel get() = data[dataIndex]
+}
