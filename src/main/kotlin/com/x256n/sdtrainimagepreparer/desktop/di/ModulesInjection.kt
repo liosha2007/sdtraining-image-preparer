@@ -3,14 +3,15 @@ package com.x256n.sdtrainimagepreparer.desktop.di
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
-import com.x256n.sdtrainimagepreparer.desktop.repository.SampleModelRepository
-import com.x256n.sdtrainimagepreparer.desktop.repository.SampleModelRepositoryImpl
+import com.x256n.sdtrainimagepreparer.desktop.repository.ProjectConfigRepository
+import com.x256n.sdtrainimagepreparer.desktop.repository.ProjectConfigRepositoryImpl
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.about.AboutViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.createproject.CreateProjectViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.settings.SettingsViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeViewModel
-import com.x256n.sdtrainimagepreparer.desktop.usecase.DoSampleModelUseCase
+import com.x256n.sdtrainimagepreparer.desktop.usecase.InitializeProjectUseCase
 import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -22,21 +23,21 @@ object ModulesInjection {
                 doSampleModel = get()
             )
         }
-        singleOf(::AboutViewModel)
-        singleOf(::SettingsViewModel)
-        singleOf(::CreateProjectViewModel)
+        factoryOf(::AboutViewModel)
+        factoryOf(::SettingsViewModel)
+        factoryOf(::CreateProjectViewModel)
     }
     val usecaseBeans = module {
-        singleOf(::DoSampleModelUseCase)
+        factoryOf(::InitializeProjectUseCase)
 
     }
     val managerBeans = module {
         singleOf(::ConfigManager)
     }
     val repositoryBeans = module {
-        singleOf(::SampleModelRepositoryImpl) { bind<SampleModelRepository>() }
+        factoryOf(::ProjectConfigRepositoryImpl) { bind<ProjectConfigRepository>() }
     }
     val otherBeans = module {
-        singleOf(::StandardDispatcherProvider) { bind<DispatcherProvider>() }
+        factoryOf(::StandardDispatcherProvider) { bind<DispatcherProvider>() }
     }
 }

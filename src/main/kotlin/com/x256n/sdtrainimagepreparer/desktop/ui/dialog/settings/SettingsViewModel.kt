@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
-import com.x256n.sdtrainimagepreparer.desktop.usecase.DoSampleModelUseCase
+import com.x256n.sdtrainimagepreparer.desktop.usecase.InitializeProjectUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 class SettingsViewModel(
     private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
     private val configManager: ConfigManager,
-    private val doSampleModel: DoSampleModelUseCase,
+    private val doSampleModel: InitializeProjectUseCase,
 ) : KoinComponent {
     private val _log = LoggerFactory.getLogger("SettingsViewModel")
 
@@ -27,7 +27,7 @@ class SettingsViewModel(
         CoroutineScope(Dispatchers.Main).launch {
             when (event) {
                 is SettingsEvent.SettingsDisplayed -> {
-                    _log.info(doSampleModel())
+//                    _log.info(doSampleModel())
                 }
 
                 else -> {

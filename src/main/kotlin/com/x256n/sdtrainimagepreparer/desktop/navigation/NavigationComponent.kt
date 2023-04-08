@@ -31,12 +31,22 @@ fun FrameWindowScope.NavigationComponent() {
         MenuBar {
             MainMenu(navigator)
         }
-        val viewModel by inject<HomeViewModel>(HomeViewModel::class.java)
-        HomeScreen(viewModel, navigator)
+        HomeScreen(navigator, dest)
 
-        CreateProjectDialog(navigator, isDialogVisible = dest is Destinations.CreateProject)
-        SettingsDialog(navigator, isDialogVisible = dest is Destinations.Settings)
-        AboutDialog(navigator, isDialogVisible = dest is Destinations.About)
+        when (dest) {
+            is Destinations.CreateProject -> {
+                CreateProjectDialog(navigator)
+            }
+            is Destinations.Settings -> {
+                SettingsDialog(navigator)
+            }
+            is Destinations.About -> {
+                AboutDialog(navigator)
+            }
+            else -> {
+
+            }
+        }
     }
     NavContainer(navigator)
 }

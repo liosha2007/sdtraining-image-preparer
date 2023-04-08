@@ -2,6 +2,7 @@ package com.x256n.sdtrainimagepreparer.desktop.common
 
 class Constants {
     companion object {
-        const val PROJECT_DIRECTORY_NAME = ".sdtrainimagespreparer"
+        const val PROJECT_DIRECTORY_NAME = ".sdtip"
+        const val CONFIG_FILE_NAME = "projectconfig.json"
     }
 }

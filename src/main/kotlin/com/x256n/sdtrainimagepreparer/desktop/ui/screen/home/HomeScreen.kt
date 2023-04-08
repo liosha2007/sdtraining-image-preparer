@@ -7,7 +7,9 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -22,15 +24,28 @@ import com.chrynan.navigation.ExperimentalNavigationApi
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Navigator
 import com.x256n.sdtrainimagepreparer.desktop.theme.spaces
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.createproject.CreateProjectViewModel
+import org.koin.java.KoinJavaComponent
 import java.awt.Cursor
 
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalNavigationApi
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, navigator: Navigator<Destinations>) {
-//    val LOG = remember { LoggerFactory.getLogger("HomeScreen") }
+fun HomeScreen(navigator: Navigator<Destinations>, dest: Destinations) {
+//    val log = remember { LoggerFactory.getLogger("HomeScreen") }
+    val viewModel by remember {
+        KoinJavaComponent.inject<HomeViewModel>(HomeViewModel::class.java)
+    }
     val state by viewModel.state
+
+    rememberSaveable(dest) {
+        if (dest is Destinations.Home) {
+            dest.projectDirectory?.let {
+                viewModel.onEvent(HomeEvent.LoadProject(it))
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.onEvent(HomeEvent.HomeDisplayed)
@@ -83,7 +98,11 @@ fun HomeScreen(viewModel: HomeViewModel, navigator: Navigator<Destinations>) {
                         }
                         .weight(1f)
                 ) {
-
+                    state.projectDirectory?.let {
+                        Text(
+                            text = it.toString()
+                        )
+                    }
                 }
             }
         }

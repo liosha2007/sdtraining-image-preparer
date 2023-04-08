@@ -9,6 +9,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogState
 import com.chrynan.navigation.ExperimentalNavigationApi
+import com.chrynan.navigation.StackDuplicateContentStrategy
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Navigator
@@ -27,26 +29,38 @@ import com.x256n.sdtrainimagepreparer.desktop.regexapplier.desktop.component.Win
 import com.x256n.sdtrainimagepreparer.desktop.theme.spaces
 import org.koin.java.KoinJavaComponent
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
 
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalNavigationApi
 @Composable
-fun CreateProjectDialog(navigator: Navigator<Destinations>, isDialogVisible: Boolean) {
-    val LOG = remember { LoggerFactory.getLogger("CreateProjectScreen") }
-    val viewModel by KoinJavaComponent.inject<CreateProjectViewModel>(CreateProjectViewModel::class.java)
+fun CreateProjectDialog(navigator: Navigator<Destinations>) {
+    val log = remember { LoggerFactory.getLogger("CreateProjectScreen") }
+    val viewModel by remember {
+        KoinJavaComponent.inject<CreateProjectViewModel>(CreateProjectViewModel::class.java)
+    }
     val state by viewModel.state
     var showImagesDirectoryPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.onEvent(CreateProjectEvent.CreateProjectDisplayed)
     }
+
+    rememberSaveable(state.isProjectCreated) {
+        if (state.isProjectCreated) {
+            state.imageDirectory?.let {
+                navigator.goTo(Destinations.Home(Path.of(it)), StackDuplicateContentStrategy.CLEAR_STACK)
+            }
+        }
+    }
+
     Dialog(
         title = "Create project",
         undecorated = false,
         resizable = false,
-        visible = isDialogVisible,
+        visible = true,
         state = DialogState(width = 480.dp, height = 360.dp),
         onKeyEvent = {
             if (it.key == Key.Escape) {
@@ -87,6 +101,8 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>, isDialogVisible: Boo
                         )
                         WinTextField(modifier = Modifier
                             .weight(1f),
+                            singleLine = true,
+                            maxLines = 1,
                             text = state.imageDirectory ?: "", onValueChange = {
                                 viewModel.onEvent(CreateProjectEvent.ImagesDirectoryChanged(it))
                             })
@@ -101,20 +117,6 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>, isDialogVisible: Boo
                         modifier = Modifier
                             .height(MaterialTheme.spaces.small)
                     )
-                    if (state.isOverrideExistingProject) {
-                        Row {
-                            WinCheckbox(
-                                text = "Override (delete) existing project",
-                                isChecked = true,
-                                enabled = false,
-                                onCheckedChange = {}
-                            )
-                        }
-                        Spacer(
-                            modifier = Modifier
-                                .height(MaterialTheme.spaces.small)
-                        )
-                    }
                     Row {
                         Text(
                             modifier = Modifier
@@ -128,6 +130,19 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>, isDialogVisible: Boo
                             onValueChange = {
                                 viewModel.onEvent(CreateProjectEvent.CaptionExtensionsChanged(it))
                             })
+                    }
+                    Spacer(
+                        modifier = Modifier
+                            .height(MaterialTheme.spaces.small)
+                    )
+                    Row {
+                        WinCheckbox(
+                            text = "Override (delete) existing project",
+                            isChecked = state.isOverrideExistingProject,
+                            onCheckedChange = {
+                                viewModel.onEvent(CreateProjectEvent.OverrideExistingProject(it))
+                            }
+                        )
                     }
                     Spacer(
                         modifier = Modifier

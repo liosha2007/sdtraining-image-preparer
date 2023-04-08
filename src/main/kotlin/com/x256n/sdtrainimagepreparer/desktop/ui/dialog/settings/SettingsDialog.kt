@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 @ExperimentalComposeUiApi
 @ExperimentalNavigationApi
 @Composable
-fun SettingsDialog(navigator: Navigator<Destinations>, isDialogVisible: Boolean) {
+fun SettingsDialog(navigator: Navigator<Destinations>) {
     val LOG = remember { LoggerFactory.getLogger("SettingsDialog") }
     val viewModel by KoinJavaComponent.inject<SettingsViewModel>(SettingsViewModel::class.java)
     val state by viewModel.state
@@ -41,7 +41,7 @@ fun SettingsDialog(navigator: Navigator<Destinations>, isDialogVisible: Boolean)
         title = "Settings",
         undecorated = false,
         resizable = false,
-        visible = isDialogVisible,
+        visible = true,
         state = DialogState(width = 360.dp, height = 500.dp),
         onKeyEvent = {
             if (it.key == Key.Escape) {

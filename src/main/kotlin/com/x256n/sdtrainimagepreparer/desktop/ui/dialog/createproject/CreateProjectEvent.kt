@@ -5,6 +5,7 @@ sealed class CreateProjectEvent {
 
     data class ImagesDirectoryChanged(val path: String) : CreateProjectEvent()
     data class CaptionExtensionsChanged(val captionExtension: String) : CreateProjectEvent()
+    data class OverrideExistingProject(val value: Boolean) : CreateProjectEvent()
     data class MergeExistingCaptionFiles(val value: Boolean) : CreateProjectEvent()
     data class MergeExistingTxtFiles(val value: Boolean) : CreateProjectEvent()
 
