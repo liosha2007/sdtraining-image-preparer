@@ -13,3 +13,6 @@ data class ProjectAlreadyExist(val path: Path) : SDTrainImagePreparerException("
 data class ProjectConfigNotFoundException(val path: Path) : SDTrainImagePreparerException("Project config does not exist: '$path'")
 
 data class CantDeleteProjectException(val path: Path) : SDTrainImagePreparerException("Can't delete project: '$path'")
+
+data class NotAProjectException(val path: Path) : SDTrainImagePreparerException("The directory is not a project: '$path'")
+data class ProjectBrokenException(val path: Path) : SDTrainImagePreparerException("The project is broken: '$path'")

@@ -9,6 +9,7 @@ import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.about.AboutViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.createproject.CreateProjectViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.settings.SettingsViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainimagepreparer.desktop.usecase.CheckProjectUseCase
 import com.x256n.sdtrainimagepreparer.desktop.usecase.InitializeProjectUseCase
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
@@ -20,7 +21,7 @@ object ModulesInjection {
         single {
             HomeViewModel(
                 dispatcherProvider = get(),
-                doSampleModel = get()
+                checkProject = get()
             )
         }
         factoryOf(::AboutViewModel)
@@ -29,6 +30,7 @@ object ModulesInjection {
     }
     val usecaseBeans = module {
         factoryOf(::InitializeProjectUseCase)
+        factoryOf(::CheckProjectUseCase)
 
     }
     val managerBeans = module {

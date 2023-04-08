@@ -28,9 +28,6 @@ typealias Navigator<T> = ComposeNavigatorByKey<T, Destinations>
 fun FrameWindowScope.NavigationComponent() {
     val navigator = rememberNavigatorByKey<Destinations, Destinations>(initialContext = Destinations.Home()) { dest ->
 
-        MenuBar {
-            MainMenu(navigator)
-        }
         HomeScreen(navigator, dest)
 
         when (dest) {

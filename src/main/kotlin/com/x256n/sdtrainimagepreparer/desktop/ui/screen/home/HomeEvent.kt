@@ -5,4 +5,5 @@ import java.nio.file.Path
 sealed class HomeEvent {
     object HomeDisplayed : HomeEvent()
     data class LoadProject(val projectDirectory: Path) : HomeEvent()
+    object OpenProject : HomeEvent()
 }

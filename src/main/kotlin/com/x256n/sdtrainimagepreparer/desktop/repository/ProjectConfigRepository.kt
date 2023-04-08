@@ -23,6 +23,8 @@ interface ProjectConfigRepository {
     suspend fun load(projectDirectory: Path): ProjectConfig
 
     suspend fun delete(projectDirectory: Path)
+
+    suspend fun check(projectDirectory: Path)
 }
 
 class ProjectConfigRepositoryImpl(
@@ -95,6 +97,19 @@ class ProjectConfigRepositoryImpl(
                     _log.error("Can't delete config", e)
                     throw CantDeleteProjectException(projectPath)
                 }
+            }
+        }
+    }
+
+    override suspend fun check(projectDirectory: Path) {
+        val projectPath = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
+        return withContext(dispatcherProvider.io) {
+            if (Files.notExists(projectPath)) {
+                throw NotAProjectException(projectDirectory)
+            }
+            val configPath = projectPath.resolve(Constants.CONFIG_FILE_NAME)
+            if (Files.notExists(configPath)) {
+                throw ProjectBrokenException(configPath)
             }
         }
     }

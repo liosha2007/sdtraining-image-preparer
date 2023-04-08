@@ -51,7 +51,10 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
     rememberSaveable(state.isProjectCreated) {
         if (state.isProjectCreated) {
             state.imageDirectory?.let {
-                navigator.goTo(Destinations.Home(Path.of(it)), StackDuplicateContentStrategy.CLEAR_STACK)
+                navigator.goTo(
+                    key = Destinations.Home(Destinations.Home.Action.LoadProject(Path.of(it))),
+                    strategy = StackDuplicateContentStrategy.CLEAR_STACK
+                )
             }
         }
     }
