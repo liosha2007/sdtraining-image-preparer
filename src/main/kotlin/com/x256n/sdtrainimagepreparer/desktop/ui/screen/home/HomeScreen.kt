@@ -143,8 +143,8 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                             Image(
                                 modifier = Modifier
                                     .fillMaxSize(),
-                                painter = BitmapPainter(pathPainter(state.currentModel.absoluteImagePath)),
-                                contentDescription = state.currentModel.imagePath.name
+                                painter = BitmapPainter(pathPainter(state[state.dataIndex].absoluteImagePath)),
+                                contentDescription = state[state.dataIndex].imagePath.name
                             )
                         }
                     }
@@ -170,7 +170,7 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                             .height(captionPanelHeight)
                     ) {
                         Text(
-                            text = if (state.data.isNotEmpty()) state.currentModel.captionContent else ""
+                            text = state.captionContent
                         )
                     }
 

@@ -15,4 +15,13 @@ data class ProjectConfigNotFoundException(val path: Path) : SDTrainImagePreparer
 data class CantDeleteProjectException(val path: Path) : SDTrainImagePreparerException("Can't delete project: '$path'")
 
 data class NotAProjectException(val path: Path) : SDTrainImagePreparerException("The directory is not a project: '$path'")
-data class ProjectBrokenException(val path: Path) : SDTrainImagePreparerException("The project is broken: '$path'")
+
+data class CantCreateProjectException(val path: Path) : SDTrainImagePreparerException("Can't create project: '$path'")
+
+data class CantSaveProjectException(val path: Path) : SDTrainImagePreparerException("Can't save project: '$path'")
+
+data class CantLoadProjectException(val path: Path) : SDTrainImagePreparerException("Can't load project: '$path'")
+
+data class CantSaveCaptionException(val path: Path) : SDTrainImagePreparerException("Can't save caption file: '$path'")
+
+data class CantLoadCaptionException(val path: Path) : SDTrainImagePreparerException("Can't load caption file: '$path'")

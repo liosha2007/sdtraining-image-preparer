@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ProjectConfig(
-    val captionExtension: String,
-    val mergeExistingCaptionFiles: Boolean,
-    val mergeExistingTxtFiles: Boolean
+    val captionExtension: String = "txt",
+    val mergeExistingCaptionFiles: Boolean = true,
+    val mergeExistingTxtFiles: Boolean = true,
+    val supportedImageFormats: List<String> = arrayListOf("png", "jpg")
 )

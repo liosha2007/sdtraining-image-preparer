@@ -13,7 +13,7 @@ class InitializeProjectUseCase(
     private val configManager: ConfigManager,
     private val projectConfigRepository: ProjectConfigRepository
 ) {
-    private val _log = LoggerFactory.getLogger("MakeScreenshotUseCase")
+    private val _log = LoggerFactory.getLogger(this::class.java)
 
     suspend operator fun invoke(
         imageDirectory: String,
@@ -32,7 +32,7 @@ class InitializeProjectUseCase(
             if (overrideExistingProject) {
                 projectConfigRepository.delete(projectDirectory)
             }
-            projectConfigRepository.save(projectDirectory, model)
+            projectConfigRepository.create(projectDirectory, model)
         } catch (e: ProjectDirectoryDoesNotExist) {
             _log.error("Can't save project config", e)
             throw DisplayableException("Project directory does not exist")

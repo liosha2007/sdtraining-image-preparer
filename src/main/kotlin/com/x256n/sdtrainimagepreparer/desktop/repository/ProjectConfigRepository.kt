@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.x256n.sdtrainimagepreparer.desktop.repository
 
 import com.x256n.sdtrainimagepreparer.desktop.common.*
 import com.x256n.sdtrainimagepreparer.desktop.model.ProjectConfig
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -18,6 +21,8 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
 interface ProjectConfigRepository {
+    suspend fun create(projectDirectory: Path, data: ProjectConfig)
+
     suspend fun save(projectDirectory: Path, data: ProjectConfig)
 
     suspend fun load(projectDirectory: Path): ProjectConfig
@@ -31,54 +36,88 @@ class ProjectConfigRepositoryImpl(
     private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
     private val json: Json
 ) : ProjectConfigRepository {
-    private val _log = LoggerFactory.getLogger("SampleModelRepositoryImpl")
+    private val _log = LoggerFactory.getLogger(this::class.java)
 
-    @OptIn(ExperimentalSerializationApi::class)
-    override suspend fun save(projectDirectory: Path, data: ProjectConfig) {
-        withContext(dispatcherProvider.io) {
-            if (Files.notExists(projectDirectory) || !Files.isDirectory(projectDirectory)) {
-                throw ProjectDirectoryDoesNotExist(projectDirectory)
-            }
+    override suspend fun create(projectDirectory: Path, data: ProjectConfig) {
+        withContext(dispatcherProvider.default) {
+            projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
+
             val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
-            if (Files.exists(projectConfigDirectory)) {
-                throw ProjectAlreadyExist(projectDirectory)
-            }
-            val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
-            kotlin.runCatching {
-                Files.createDirectory(projectConfigDirectory)
+            projectConfigDirectory.assertNotExist(::ProjectAlreadyExist)
 
-                FileOutputStream(configPath.toFile()).use { stream ->
-                    json.encodeToStream(data, stream)
+            val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
+
+            try {
+                runInterruptible(dispatcherProvider.io) {
+                    Files.createDirectory(projectConfigDirectory)
+
+                    FileOutputStream(configPath.toFile()).use { stream ->
+                        json.encodeToStream(data, stream)
+                    }
                 }
-            }.onFailure { e ->
-                _log.error(e.localizedMessage ?: "Can't save SampleModel list!")
+            } catch (e: IOException) {
+                _log.error("Can't create project", e)
+                throw CantCreateProjectException(configPath)
             }
         }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
-    override suspend fun load(projectDirectory: Path): ProjectConfig {
-        val configPath = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME).resolve(Constants.CONFIG_FILE_NAME)
-        return withContext(dispatcherProvider.io) {
-            if (Files.exists(configPath)) {
-                kotlin.runCatching {
-                    FileInputStream(configPath.toFile()).use { stream ->
-                        return@withContext json.decodeFromStream<ProjectConfig>(stream)
+    override suspend fun save(projectDirectory: Path, data: ProjectConfig) {
+        withContext(dispatcherProvider.default) {
+            projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
+
+            val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
+            projectConfigDirectory.assertExist(::NotAProjectException)
+
+            val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
+            configPath.assertExist(::ProjectConfigNotFoundException, isFile = true)
+
+            try {
+                runInterruptible(dispatcherProvider.io) {
+                    FileOutputStream(configPath.toFile()).use { stream ->
+                        json.encodeToStream(data, stream)
                     }
-                }.onFailure { e ->
-                    _log.error("Can't load SampleModel list", e)
                 }
+            } catch (e: Exception) {
+                _log.error("Can't save project", e)
+                throw CantSaveProjectException(configPath)
             }
-            throw ProjectConfigNotFoundException(configPath)
+        }
+    }
+
+    override suspend fun load(projectDirectory: Path): ProjectConfig {
+        return withContext(dispatcherProvider.default) {
+            projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
+
+            val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
+            projectConfigDirectory.assertExist(::NotAProjectException)
+
+            val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
+            configPath.assertExist(::ProjectConfigNotFoundException, isFile = true)
+
+            try {
+                runInterruptible(dispatcherProvider.io) {
+                    FileInputStream(configPath.toFile()).use { stream ->
+                        return@runInterruptible json.decodeFromStream<ProjectConfig>(stream)
+                    }
+                }
+            } catch (e: Exception) {
+                _log.error("Can't load project config", e)
+                throw CantLoadProjectException(configPath)
+            }
         }
     }
 
     override suspend fun delete(projectDirectory: Path) {
-        val projectPath = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
-        return withContext(dispatcherProvider.io) {
-            if (Files.exists(projectPath)) {
-                kotlin.runCatching {
-                    Files.walkFileTree(projectPath, object : SimpleFileVisitor<Path>() {
+        return withContext(dispatcherProvider.default) {
+            projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
+
+            val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
+            projectConfigDirectory.assertExist(::NotAProjectException)
+
+            try {
+                runInterruptible(dispatcherProvider.io) {
+                    Files.walkFileTree(projectConfigDirectory, object : SimpleFileVisitor<Path>() {
                         override fun postVisitDirectory(dir: Path?, exc: IOException?): FileVisitResult {
                             dir?.let {
                                 Files.delete(dir)
@@ -93,23 +132,39 @@ class ProjectConfigRepositoryImpl(
                             return FileVisitResult.CONTINUE
                         }
                     })
-                }.onFailure { e ->
-                    _log.error("Can't delete config", e)
-                    throw CantDeleteProjectException(projectPath)
                 }
+            } catch (e: Exception) {
+                _log.error("Can't delete config", e)
+                throw CantDeleteProjectException(projectConfigDirectory)
             }
         }
     }
 
     override suspend fun check(projectDirectory: Path) {
-        val projectPath = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
-        return withContext(dispatcherProvider.io) {
-            if (Files.notExists(projectPath)) {
-                throw NotAProjectException(projectDirectory)
+        projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
+
+        val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
+        projectConfigDirectory.assertExist(::NotAProjectException)
+
+        val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
+        configPath.assertExist(::ProjectConfigNotFoundException, isFile = true)
+    }
+
+    private suspend fun Path.assertExist(exceptionFactory: (path: Path) -> SDTrainImagePreparerException, isFile: Boolean = false) {
+        withContext(dispatcherProvider.io) {
+            if (Files.notExists(this@assertExist)
+                || ((isFile && !Files.isRegularFile(this@assertExist))
+                        || (!isFile && !Files.isDirectory(this@assertExist)))
+            ) {
+                throw exceptionFactory(this@assertExist)
             }
-            val configPath = projectPath.resolve(Constants.CONFIG_FILE_NAME)
-            if (Files.notExists(configPath)) {
-                throw ProjectBrokenException(configPath)
+        }
+    }
+
+    private suspend fun Path.assertNotExist(exceptionFactory: (path: Path) -> SDTrainImagePreparerException) {
+        withContext(dispatcherProvider.io) {
+            if (Files.exists(this@assertNotExist)) {
+                throw exceptionFactory(this@assertNotExist)
             }
         }
     }

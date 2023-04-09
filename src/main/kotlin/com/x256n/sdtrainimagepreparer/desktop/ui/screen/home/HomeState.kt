@@ -9,7 +9,10 @@ data class HomeState(
     val projectDirectory: Path? = null,
     val isOpenProject: Boolean = false,
     val data: List<ImageModel> = emptyList(),
-    val dataIndex: Int = 0
+    val dataIndex: Int = 0,
+    val captionContent: String = ""
 ) {
-    val currentModel get() = data[dataIndex]
+    operator fun get(index: Int): ImageModel {
+        return data[index]
+    }
 }

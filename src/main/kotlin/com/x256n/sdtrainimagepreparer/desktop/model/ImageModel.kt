@@ -7,7 +7,7 @@ import kotlin.io.path.nameWithoutExtension
 data class ImageModel(
     val projectDirectory: Path,
     val imagePath: Path,
-    var captionContent: String = "",
+    val captionExtension: String,
 ) {
     val thumbnailPath
         get() =
@@ -15,11 +15,13 @@ data class ImageModel(
                 .resolve(Constants.PROJECT_DIRECTORY_NAME)
                 .resolve(Constants.THUMBNAILS_DIRECTORY_NAME)
                 .resolve(imagePath)
+
     val captionPath
         get() =
             projectDirectory
                 .resolve(imagePath.parent ?: Path.of(""))
-                .resolve("${imagePath.nameWithoutExtension}.txt")
+                .resolve("${imagePath.nameWithoutExtension}.$captionExtension")
+
     val absoluteImagePath
         get() =
             projectDirectory

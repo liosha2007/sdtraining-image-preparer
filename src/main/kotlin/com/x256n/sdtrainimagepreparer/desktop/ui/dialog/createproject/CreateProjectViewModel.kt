@@ -42,14 +42,20 @@ class CreateProjectViewModel(
                     )
                 }
                 is CreateProjectEvent.CaptionExtensionsChanged -> {
-                    val isCaptionExtensionIncorrect =
-                        event.captionExtension.isBlank() || event.captionExtension.trim() == "." || event.captionExtension.contains(
-                            Regex("([/\\\\:*\"<>|])")
+                    if (event.captionExtension.trim().trim('.').isBlank()) {
+                        _state.value = state.value.copy(
+                            errorMessage = "Caption files extension must not be empty!"
                         )
-                    _state.value = state.value.copy(
-                        captionExtension = if (!isCaptionExtensionIncorrect && !event.captionExtension.startsWith('.')) ".${event.captionExtension}" else event.captionExtension,
-                        errorMessage = if (isCaptionExtensionIncorrect) "Caption files extension must not be empty!" else null,
-                    )
+                    } else if (event.captionExtension.contains(Regex("([/\\\\:*\"<>|])"))) {
+                        _state.value = state.value.copy(
+                            errorMessage = "Caption files extension must not contain next chars: /\\:*\"<>|!"
+                        )
+                    } else {
+                        _state.value = state.value.copy(
+                            captionExtension = event.captionExtension.trim().trimStart('.'),
+                            errorMessage = null,
+                        )
+                    }
                 }
                 is CreateProjectEvent.MergeExistingCaptionFiles -> {
                     _state.value = state.value.copy(

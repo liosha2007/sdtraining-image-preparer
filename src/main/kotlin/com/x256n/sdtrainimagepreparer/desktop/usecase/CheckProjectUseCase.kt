@@ -12,7 +12,7 @@ class CheckProjectUseCase(
     private val configManager: ConfigManager,
     private val projectConfigRepository: ProjectConfigRepository
 ) {
-    private val _log = LoggerFactory.getLogger("CheckProjectUseCase")
+    private val _log = LoggerFactory.getLogger(this::class.java)
 
     suspend operator fun invoke(projectDirectory: Path) {
         try {
@@ -20,7 +20,7 @@ class CheckProjectUseCase(
         } catch (e: NotAProjectException) {
             _log.error("The directory does not have project", e)
             throw DisplayableException("The directory is not a project")
-        } catch (e: ProjectBrokenException) {
+        } catch (e: CantLoadProjectException) {
             _log.error("Project checking failed", e)
             throw DisplayableException("The project is broken")
         }
