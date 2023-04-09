@@ -4,7 +4,7 @@ import com.x256n.sdtrainimagepreparer.desktop.common.*
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainimagepreparer.desktop.model.ImageModel
 import com.x256n.sdtrainimagepreparer.desktop.repository.ProjectConfigRepository
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import org.slf4j.LoggerFactory
@@ -29,74 +29,79 @@ class LoadImageModelsUseCase(
     suspend operator fun invoke(projectDirectory: Path): List<ImageModel> {
         try {
             val projectConfig = projectConfigRepository.load(projectDirectory)
+            return coroutineScope {
+                val coroutineScope = this
+                return@coroutineScope projectDirectory.walk()
+                    .filter {
+                        projectConfig.supportedImageFormats.contains(it.extension)
+                                && !it.startsWith(projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME))
+                    }
+                    .sortedBy { it.name }
+                    .map { absoluteImagePath ->
+                        val relativeImagePath = projectDirectory.relativize(absoluteImagePath)
 
-            return projectDirectory.walk()
-                .filter {
-                    projectConfig.supportedImageFormats.contains(it.extension)
-                            && !it.startsWith(projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME))
-                }
-                .sortedBy { it.name }
-                .map { absoluteImagePath ->
-                    val relativeImagePath = projectDirectory.relativize(absoluteImagePath)
+                        val model = ImageModel(
+                            projectDirectory = projectDirectory,
+                            imagePath = relativeImagePath,
+                            captionExtension = projectConfig.captionExtension,
+                        )
 
-                    val model = ImageModel(
-                        projectDirectory = projectDirectory,
-                        imagePath = relativeImagePath,
-                        captionExtension = projectConfig.captionExtension,
-                    )
+                        coroutineScope.launch(dispatcherProvider.default) {
 
-                    CoroutineScope(dispatcherProvider.default).launch {
-                        val thumbnailExist = runInterruptible(dispatcherProvider.io) { Files.exists(model.thumbnailPath) }
-                        if (thumbnailExist) {
-                            model.imageWidth = runInterruptible(dispatcherProvider.io) {
-                                val byteBuffer = Files.getAttribute(model.thumbnailPath, "user:image-width")
-                                ByteBuffer.wrap((byteBuffer as ByteArray)).int
-                            }
-                            model.imageHeight = runInterruptible(dispatcherProvider.io) {
-                                val byteBuffer = Files.getAttribute(model.thumbnailPath, "user:image-height")
-                                ByteBuffer.wrap((byteBuffer as ByteArray)).int
-                            }
-                        } else {
-                            val thumbnailsDirectory = model.thumbnailPath.parent
-                            runInterruptible(dispatcherProvider.io) {
-                                if (Files.notExists(thumbnailsDirectory) || !Files.isDirectory(thumbnailsDirectory)) {
-                                    Files.createDirectory(model.thumbnailPath.parent)
+                            val thumbnailExist = runInterruptible(dispatcherProvider.io) { Files.exists(model.thumbnailPath) }
+                            if (thumbnailExist) {
+                                model.imageWidth = runInterruptible(dispatcherProvider.io) {
+                                    val byteBuffer = Files.getAttribute(model.thumbnailPath, "user:image-width")
+                                    ByteBuffer.wrap((byteBuffer as ByteArray)).int
                                 }
-                            }
-
-                            val originalImage = runInterruptible(dispatcherProvider.io) {
-                                ImageIO.read(absoluteImagePath.toFile())
-                            }
-                            model.imageWidth = originalImage.width
-                            model.imageHeight = originalImage.height
-
-                            try {
-                                val thumbnailsWidth = configManager.thumbnailsWidth
-                                val ratio = model.imageWidth.toFloat() / model.imageHeight.toFloat()
-
-                                val resizedImage =
-                                    originalImage.resizeImage(thumbnailsWidth, (thumbnailsWidth / ratio).toInt())
+                                model.imageHeight = runInterruptible(dispatcherProvider.io) {
+                                    val byteBuffer = Files.getAttribute(model.thumbnailPath, "user:image-height")
+                                    ByteBuffer.wrap((byteBuffer as ByteArray)).int
+                                }
+                            } else {
+                                val thumbnailsDirectory = model.thumbnailPath.parent
                                 runInterruptible(dispatcherProvider.io) {
-                                    ImageIO.write(resizedImage, "png", model.thumbnailPath.toFile())
+                                    synchronized(projectConfig) {
+                                        if (Files.notExists(thumbnailsDirectory) || !Files.isDirectory(thumbnailsDirectory)) {
+                                            Files.createDirectory(thumbnailsDirectory)
+                                        }
+                                    }
                                 }
-                                runInterruptible(dispatcherProvider.io) {
-                                    val byteBuffer = ByteBuffer.allocate(4)
-                                    byteBuffer.putInt(model.imageWidth)
-                                    Files.setAttribute(model.thumbnailPath, "user:image-width", byteBuffer.array())
+
+                                val originalImage = runInterruptible(dispatcherProvider.io) {
+                                    ImageIO.read(absoluteImagePath.toFile())
                                 }
-                                runInterruptible(dispatcherProvider.io) {
-                                    val byteBuffer = ByteBuffer.allocate(4)
-                                    byteBuffer.putInt(model.imageHeight)
-                                    Files.setAttribute(model.thumbnailPath, "user:image-height", byteBuffer.array())
+                                model.imageWidth = originalImage.width
+                                model.imageHeight = originalImage.height
+
+                                try {
+                                    val thumbnailsWidth = configManager.thumbnailsWidth
+                                    val ratio = model.imageWidth.toFloat() / model.imageHeight.toFloat()
+
+                                    val resizedImage =
+                                        originalImage.resizeImage(thumbnailsWidth, (thumbnailsWidth / ratio).toInt())
+                                    runInterruptible(dispatcherProvider.io) {
+                                        ImageIO.write(resizedImage, "png", model.thumbnailPath.toFile())
+                                    }
+                                    runInterruptible(dispatcherProvider.io) {
+                                        val byteBuffer = ByteBuffer.allocate(4)
+                                        byteBuffer.putInt(model.imageWidth)
+                                        Files.setAttribute(model.thumbnailPath, "user:image-width", byteBuffer.array())
+                                    }
+                                    runInterruptible(dispatcherProvider.io) {
+                                        val byteBuffer = ByteBuffer.allocate(4)
+                                        byteBuffer.putInt(model.imageHeight)
+                                        Files.setAttribute(model.thumbnailPath, "user:image-height", byteBuffer.array())
+                                    }
+                                } catch (e: java.lang.Exception) {
+                                    _log.error("Can't create thumbnail image", e)
+                                    throw DisplayableException("Image preview can't be created")
                                 }
-                            } catch (e: java.lang.Exception) {
-                                _log.error("Can't create thumbnail image", e)
-                                throw DisplayableException("Image preview can't be created")
                             }
                         }
-                    }
-                    model
-                }.toList()
+                        model
+                    }.toList()
+            }
         } catch (e: Exception) {
             _log.error("Can't load images", e)
             throw DisplayableException("Images can't be loaded")
