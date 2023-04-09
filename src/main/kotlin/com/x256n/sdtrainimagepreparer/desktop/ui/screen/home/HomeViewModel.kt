@@ -82,22 +82,10 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun captionContentChanged(value: String) {
+    private fun captionContentChanged(value: String) {
         _state.value = state.value.copy(
             captionContent = value
         )
-        withContext(dispatcherProvider.default) {
-            if (value.contains(',')) {
-                val captionContent = value.substring(0, value.lastIndexOf(','))
-                if (captionContent.isNotBlank()) {
-                    val captionKeywordList = splitCaption(captionContent)
-                    _state.value = state.value.copy(
-                        keywordList = state.value.addMissingKeywords(captionKeywordList)
-                    )
-                    writeCaption(state.value[state.value.dataIndex], captionKeywordList)
-                }
-            }
-        }
     }
 
     private suspend fun imageSelected(index: Int) {

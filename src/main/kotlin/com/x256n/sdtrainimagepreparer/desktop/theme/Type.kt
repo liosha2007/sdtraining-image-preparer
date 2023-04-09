@@ -15,7 +15,7 @@ val Typography = Typography(
     ),
     body2 = TextStyle(
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
+        fontSize = 11.sp,
         color = BlueLight
     )
 )
