@@ -21,6 +21,8 @@ class ConfigManager {
             }
         }
 
+    val thumbnailsWidth: Int = 168
+
     companion object {
         val config = Properties()
         private val propertiesPath: Path = Paths.get(".", "config.properties").toAbsolutePath().normalize()

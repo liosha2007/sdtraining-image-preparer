@@ -54,7 +54,7 @@ fun AsyncImage(
                 painter = if (image is AsyncImageState.Done) painterFor((image as AsyncImageState.Done).image) else initialImage,
                 contentDescription = contentDescription,
                 contentScale = contentScale,
-                modifier = modifier
+                modifier = modifier,
             )
         }
     }

@@ -18,10 +18,12 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import com.chrynan.navigation.ExperimentalNavigationApi
@@ -95,18 +97,45 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                             .fillMaxSize()
                     ) {
                         itemsIndexed(state.data) { index, item ->
-                            AsyncImage(
+                            var thumbnailSize by remember { mutableStateOf(IntSize.Zero) }
+                            Column(
                                 modifier = Modifier
-                                    .clickable {
-                                        viewModel.onEvent(HomeEvent.ImageSelected(index))
+                                    .fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                AsyncImage(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onSizeChanged {
+                                            thumbnailSize = it
+                                        }
+                                        .height((thumbnailSize.width / 1.7).dp)
+                                        .clickable {
+                                            viewModel.onEvent(HomeEvent.ImageSelected(index))
+                                        },
+                                    load = {
+                                        pathPainter(item.thumbnailPath)
                                     },
-                                load = {
-                                    pathPainter(item.absoluteImagePath)
-                                },
-                                initialImage = painterResource("icon.ico"),
-                                painterFor = { remember { BitmapPainter(it) } },
-                                contentDescription = "Image $index"
-                            )
+                                    initialImage = painterResource("icon.ico"),
+                                    painterFor = { remember { BitmapPainter(it) } },
+                                    contentDescription = "Image $index",
+                                    contentScale = ContentScale.Fit
+                                )
+                                Text(
+                                    modifier = Modifier,
+                                    text = state.data[state.dataIndex].imageName,
+                                    fontSize = 8.sp
+                                )
+                                Text(
+                                    modifier = Modifier,
+                                    text = "${state.data[state.dataIndex].imageWidth} x ${state.data[state.dataIndex].imageHeight}",
+                                    fontSize = 10.sp
+                                )
+                                Spacer(
+                                    modifier = Modifier
+                                        .height(MaterialTheme.spaces.extraSmall)
+                                )
+                            }
                         }
                     }
                 }

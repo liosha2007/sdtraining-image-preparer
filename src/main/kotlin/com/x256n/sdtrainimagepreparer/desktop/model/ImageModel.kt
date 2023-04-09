@@ -2,11 +2,14 @@ package com.x256n.sdtrainimagepreparer.desktop.model
 
 import com.x256n.sdtrainimagepreparer.desktop.common.Constants
 import java.nio.file.Path
+import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 
 data class ImageModel(
     val projectDirectory: Path,
     val imagePath: Path,
+    var imageWidth: Int = 0,
+    var imageHeight: Int = 0,
     val captionExtension: String,
 ) {
     val thumbnailPath
@@ -26,4 +29,7 @@ data class ImageModel(
         get() =
             projectDirectory
                 .resolve(imagePath)
+
+    val imageName
+        get() = imagePath.name
 }

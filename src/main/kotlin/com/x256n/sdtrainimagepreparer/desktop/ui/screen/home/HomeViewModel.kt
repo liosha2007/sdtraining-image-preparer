@@ -8,6 +8,7 @@ import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.usecase.CheckProjectUseCase
 import com.x256n.sdtrainimagepreparer.desktop.usecase.LoadImageModelsUseCase
 import com.x256n.sdtrainimagepreparer.desktop.usecase.ReadCaptionUseCase
+import com.x256n.sdtrainimagepreparer.desktop.usecase.RemoveIncorrectThumbnailsUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -20,7 +21,8 @@ class HomeViewModel(
     private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
     private val checkProject: CheckProjectUseCase,
     private val loadImageModels: LoadImageModelsUseCase,
-    private val readCaption: ReadCaptionUseCase
+    private val readCaption: ReadCaptionUseCase,
+    private val removeIncorrectThumbnails: RemoveIncorrectThumbnailsUseCase
 ) : KoinComponent {
     private val _log = LoggerFactory.getLogger("HomeViewModel")
 
@@ -76,6 +78,9 @@ class HomeViewModel(
             isOpenProject = false
         )
         checkProject(projectDirectory)
+
+        removeIncorrectThumbnails(projectDirectory)
+
         loadImageModels(projectDirectory) { model ->
             _state.value = state.value.copy(data = state.value.data.toMutableList().apply {
                 add(model)

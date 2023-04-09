@@ -24,7 +24,8 @@ object ModulesInjection {
                 dispatcherProvider = get(),
                 checkProject = get(),
                 loadImageModels = get(),
-                readCaption = get()
+                readCaption = get(),
+                removeIncorrectThumbnails = get()
             )
         }
         factoryOf(::AboutViewModel)
@@ -37,6 +38,7 @@ object ModulesInjection {
         factoryOf(::WriteCaptionUseCase)
         factoryOf(::ReadCaptionUseCase)
         factoryOf(::LoadImageModelsUseCase)
+        factoryOf(::RemoveIncorrectThumbnailsUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)
