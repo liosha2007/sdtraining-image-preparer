@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.slf4j.LoggerFactory
-import java.lang.Exception
 import java.nio.file.Path
 import kotlin.io.path.name
 
@@ -47,6 +46,12 @@ class HomeViewModel(
                     }
                     is HomeEvent.ImageSelected -> {
                         imageSelected(event.index)
+                    }
+                    is HomeEvent.ShowNextImage -> {
+                        imageSelected(if (state.value.dataIndex == state.value.data.lastIndex) 0 else state.value.dataIndex + 1)
+                    }
+                    is HomeEvent.ShowPrevImage -> {
+                        imageSelected(if (state.value.dataIndex == 0) state.value.data.lastIndex else state.value.dataIndex - 1)
                     }
 
                     else -> {
@@ -82,11 +87,17 @@ class HomeViewModel(
         removeIncorrectThumbnails(projectDirectory)
 
         loadImageModels(projectDirectory) { model ->
-            _state.value = state.value.copy(data = state.value.data.toMutableList().apply {
-                add(model)
-            })
+            _state.value = state.value.copy(
+                data = state.value.data.toMutableList().apply {
+                    add(model)
+                    sortBy { it.imageName }
+                }
+            )
         }
 
-        _state.value = state.value.copy(projectDirectory = projectDirectory)
+        _state.value = state.value.copy(
+            projectDirectory = projectDirectory,
+            dataIndex = 0
+        )
     }
 }

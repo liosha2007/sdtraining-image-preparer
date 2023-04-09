@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -14,7 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
@@ -34,7 +40,10 @@ import com.x256n.sdtrainimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainimagepreparer.desktop.ui.component.AsyncImage
 import com.x256n.sdtrainimagepreparer.desktop.ui.component.pathPainter
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.component.MainMenu
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
+import org.slf4j.LoggerFactory
 import java.awt.Cursor
 import java.nio.file.Path
 import kotlin.io.path.name
@@ -44,13 +53,14 @@ import kotlin.io.path.name
 @ExperimentalNavigationApi
 @Composable
 fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destinations) {
-//    val log = remember { LoggerFactory.getLogger("HomeScreen") }
+    val log = remember { LoggerFactory.getLogger("HomeScreen") }
     val viewModel by remember {
         KoinJavaComponent.inject<HomeViewModel>(HomeViewModel::class.java)
     }
     MenuBar {
         MainMenu(navigator, viewModel)
     }
+    val coroutineScope = rememberCoroutineScope()
     val state by viewModel.state
 
     rememberSaveable(dest) {
@@ -69,11 +79,41 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
         }
     }
 
+    val spacerSize = 10.dp
+    var explorerPanelWidth by remember { mutableStateOf(168.dp) }
+    var previewPanelSize by remember { mutableStateOf(IntSize.Zero) }
+    var tagsPanelWidth by remember { mutableStateOf(168.dp) }
+    var captionPanelHeight by remember { mutableStateOf(64.dp) }
+    val lazyColumnState = rememberLazyListState()
+    var mainImagePainter by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    rememberSaveable(state.dataIndex) {
+        if (state.hasData) {
+            coroutineScope.launch {
+                lazyColumnState.animateScrollToItem(state.dataIndex)
+            }
+            coroutineScope.launch(Dispatchers.IO) {
+                mainImagePainter = pathPainter(state[state.dataIndex].absoluteImagePath)
+            }
+        }
+    }
+
     if (!state.isLoading) {
         Column(
             modifier = Modifier
                 .padding(MaterialTheme.spaces.small)
                 .fillMaxSize()
+                .onKeyEvent {
+                    return@onKeyEvent if (it.key == Key.Tab) {
+                        log.debug("Key event: ${it.key}, shift: ${it.isShiftPressed}")
+                        if (it.isShiftPressed) {
+                            viewModel.onEvent(HomeEvent.ShowPrevImage)
+                        } else {
+                            viewModel.onEvent(HomeEvent.ShowNextImage)
+                        }
+                        true
+                    } else false
+                }
         ) {
 
             Row(
@@ -81,34 +121,38 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                     .fillMaxSize()
                     .padding(MaterialTheme.spaces.extraSmall)
             ) {
-                var explorerPanelWidth by remember { mutableStateOf(168.dp) }
-                var previewPanelSize by remember { mutableStateOf(IntSize.Zero) }
-                var tagsPanelWidth by remember { mutableStateOf(168.dp) }
-                var captionPanelHeight by remember { mutableStateOf(64.dp) }
-                val spacerSize = 10.dp
 
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(explorerPanelWidth)
                 ) {
+                    var thumbnailSize by remember { mutableStateOf(IntSize.Zero) }
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
+                            .onSizeChanged {
+                                thumbnailSize = it
+                            },
+                        state = lazyColumnState
                     ) {
                         itemsIndexed(state.data) { index, item ->
-                            var thumbnailSize by remember { mutableStateOf(IntSize.Zero) }
-                            Column(
+                            var modifier: Modifier = Modifier
+                            var textColor = Color.Black
+                            if (index == state.dataIndex) {
                                 modifier = Modifier
+                                    .background(Color.DarkGray)
+                                textColor = Color.White
+                            }
+
+                            Column(
+                                modifier = modifier
                                     .fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AsyncImage(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .onSizeChanged {
-                                            thumbnailSize = it
-                                        }
                                         .height((thumbnailSize.width / 1.7).dp)
                                         .clickable {
                                             viewModel.onEvent(HomeEvent.ImageSelected(index))
@@ -123,13 +167,15 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                                 )
                                 Text(
                                     modifier = Modifier,
-                                    text = state.data[state.dataIndex].imageName,
-                                    fontSize = 8.sp
+                                    text = item.imageName,
+                                    fontSize = 8.sp,
+                                    color = textColor
                                 )
                                 Text(
                                     modifier = Modifier,
-                                    text = "${state.data[state.dataIndex].imageWidth} x ${state.data[state.dataIndex].imageHeight}",
-                                    fontSize = 10.sp
+                                    text = "${item.imageWidth} x ${item.imageHeight}",
+                                    fontSize = 10.sp,
+                                    color = textColor
                                 )
                                 Spacer(
                                     modifier = Modifier
@@ -169,12 +215,23 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                             .weight(1f)
                     ) {
                         if (state.data.isNotEmpty()) {
-                            Image(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                painter = BitmapPainter(pathPainter(state[state.dataIndex].absoluteImagePath)),
-                                contentDescription = state[state.dataIndex].imagePath.name
-                            )
+                            if (mainImagePainter == null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            } else {
+                                Image(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    painter = BitmapPainter(mainImagePainter!!),
+                                    contentDescription = state[state.dataIndex].imagePath.name,
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
                         }
                     }
                     Spacer(modifier = Modifier

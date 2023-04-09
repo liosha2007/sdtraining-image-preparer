@@ -42,8 +42,7 @@ fun AsyncImage(
     when (image) {
         is AsyncImageState.Loading -> {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = modifier,
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -58,7 +57,6 @@ fun AsyncImage(
             )
         }
     }
-
 }
 
 sealed class AsyncImageState {
