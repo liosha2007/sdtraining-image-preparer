@@ -33,38 +33,40 @@ class RemoveIncorrectThumbnailsUseCase(
                 .resolve(Constants.THUMBNAILS_DIRECTORY_NAME)
 
             runInterruptible(dispatcherProvider.io) {
-                Files.walkFileTree(thumbnailsDirectory, object : SimpleFileVisitor<Path>() {
-                    override fun visitFile(absoluteThumbnailPath: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-                        if (absoluteThumbnailPath != null && absoluteThumbnailPath.extension == "png") {
-                            CoroutineScope(dispatcherProvider.default).launch {
-                                val sourceImage = projectDirectory.resolve(thumbnailsDirectory.relativize(absoluteThumbnailPath))
-                                val isSourceNotExist = runInterruptible(dispatcherProvider.io) {
-                                    Files.notExists(sourceImage)
-                                }
-                                if (isSourceNotExist) {
-                                    runInterruptible {
-                                        _log.debug("Deleting thumbnail (source image does not exist): '$absoluteThumbnailPath'")
-                                        Files.delete(absoluteThumbnailPath)
+                if (Files.exists(thumbnailsDirectory) && Files.isDirectory(thumbnailsDirectory)) {
+                    Files.walkFileTree(thumbnailsDirectory, object : SimpleFileVisitor<Path>() {
+                        override fun visitFile(absoluteThumbnailPath: Path?, attrs: BasicFileAttributes?): FileVisitResult {
+                            if (absoluteThumbnailPath != null && absoluteThumbnailPath.extension == "png") {
+                                CoroutineScope(dispatcherProvider.default).launch {
+                                    val sourceImage = projectDirectory.resolve(thumbnailsDirectory.relativize(absoluteThumbnailPath))
+                                    val isSourceNotExist = runInterruptible(dispatcherProvider.io) {
+                                        Files.notExists(sourceImage)
                                     }
-                                } else {
-                                    val imageLastModifiedTime = runInterruptible(dispatcherProvider.io) {
-                                        Files.getLastModifiedTime(sourceImage)
-                                    }
-                                    val thumbnailLastModifiedTime = runInterruptible(dispatcherProvider.io) {
-                                        Files.getLastModifiedTime(absoluteThumbnailPath)
-                                    }
-                                    if (imageLastModifiedTime.toMillis() > thumbnailLastModifiedTime.toMillis()) {
+                                    if (isSourceNotExist) {
                                         runInterruptible {
-                                            _log.debug("Deleting thumbnail (source image was changed): '$absoluteThumbnailPath'")
+                                            _log.debug("Deleting thumbnail (source image does not exist): '$absoluteThumbnailPath'")
                                             Files.delete(absoluteThumbnailPath)
+                                        }
+                                    } else {
+                                        val imageLastModifiedTime = runInterruptible(dispatcherProvider.io) {
+                                            Files.getLastModifiedTime(sourceImage)
+                                        }
+                                        val thumbnailLastModifiedTime = runInterruptible(dispatcherProvider.io) {
+                                            Files.getLastModifiedTime(absoluteThumbnailPath)
+                                        }
+                                        if (imageLastModifiedTime.toMillis() > thumbnailLastModifiedTime.toMillis()) {
+                                            runInterruptible {
+                                                _log.debug("Deleting thumbnail (source image was changed): '$absoluteThumbnailPath'")
+                                                Files.delete(absoluteThumbnailPath)
+                                            }
                                         }
                                     }
                                 }
                             }
+                            return FileVisitResult.CONTINUE
                         }
-                        return FileVisitResult.CONTINUE
-                    }
-                })
+                    })
+                }
             }
         } catch (e: Exception) {
             _log.error("Can't remove incorrect thumbnails", e)

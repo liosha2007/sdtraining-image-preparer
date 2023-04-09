@@ -142,7 +142,7 @@ class HomeViewModel(
 
     private suspend fun loadProject(projectDirectory: Path) {
         withContext(dispatcherProvider.default) {
-            _state.value = state.value.copy(
+            _state.value = HomeState(
                 projectDirectory = null,
                 isOpenProject = false
             )
