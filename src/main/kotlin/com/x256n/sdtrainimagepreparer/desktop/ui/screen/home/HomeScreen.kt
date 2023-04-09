@@ -101,7 +101,7 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                                         viewModel.onEvent(HomeEvent.ImageSelected(index))
                                     },
                                 load = {
-                                    pathPainter(item.imagePath)
+                                    pathPainter(item.absoluteImagePath)
                                 },
                                 initialImage = painterResource("icon.ico"),
                                 painterFor = { remember { BitmapPainter(it) } },
@@ -143,7 +143,7 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                             Image(
                                 modifier = Modifier
                                     .fillMaxSize(),
-                                painter = BitmapPainter(pathPainter(state.currentModel.imagePath)),
+                                painter = BitmapPainter(pathPainter(state.currentModel.absoluteImagePath)),
                                 contentDescription = state.currentModel.imagePath.name
                             )
                         }
@@ -170,7 +170,7 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                             .height(captionPanelHeight)
                     ) {
                         Text(
-                            text = "Caption"
+                            text = if (state.data.isNotEmpty()) state.currentModel.captionContent else ""
                         )
                     }
 

@@ -2,7 +2,6 @@ package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import com.x256n.sdtrainimagepreparer.desktop.common.Constants
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.model.ImageModel
@@ -15,8 +14,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import kotlin.io.path.extension
 import kotlin.io.path.name
-import kotlin.io.path.nameWithoutExtension
 
 class HomeViewModel(
     private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
@@ -72,19 +71,24 @@ class HomeViewModel(
             loadImagesJob?.cancel()
             loadImagesJob = launch {
                 Files.walkFileTree(projectDirectory, object : SimpleFileVisitor<Path>() {
+                    val supportedFormats = arrayListOf("png", "jpg")
                     override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
                         return if (!isActive) {
                             FileVisitResult.TERMINATE
+                        } else if (file != null && !supportedFormats.contains(file.extension)) {
+                            FileVisitResult.CONTINUE
                         } else {
                             file?.let { absoluteImagePath ->
                                 val relativeImagePath = projectDirectory.relativize(absoluteImagePath)
                                 val model = ImageModel(
-                                    imagePath = absoluteImagePath,//relativeImagePath,
-                                    thumbnailPath = Path.of(Constants.PROJECT_DIRECTORY_NAME)
-                                        .resolve(Constants.THUMBNAILS_DIRECTORY_NAME)
-                                        .resolve(relativeImagePath),
-                                    captionPath = projectDirectory.resolve("${relativeImagePath.nameWithoutExtension}.txt")
+                                    projectDirectory = projectDirectory,
+                                    imagePath = relativeImagePath
                                 )
+                                if (Files.notExists(model.captionPath)) {
+                                    Files.writeString(model.captionPath, "")
+                                } else {
+                                    model.captionContent = Files.readString(model.captionPath)
+                                }
                                 thumbnailsJob.add(
                                     launch {
                                         val fullThumbnailPath = projectDirectory.resolve(model.thumbnailPath)
