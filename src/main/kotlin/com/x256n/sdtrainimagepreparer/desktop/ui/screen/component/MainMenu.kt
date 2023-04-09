@@ -3,13 +3,14 @@ package com.x256n.sdtrainimagepreparer.desktop.ui.screen.component
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.MenuBarScope
 import com.chrynan.navigation.ExperimentalNavigationApi
-import com.chrynan.navigation.StackDuplicateContentStrategy
 import com.chrynan.navigation.compose.ComposeNavigatorByKey
 import com.chrynan.navigation.compose.goTo
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeEvent
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeViewModel
+import kotlin.io.path.ExperimentalPathApi
 
+@ExperimentalPathApi
 @ExperimentalNavigationApi
 @Composable
 fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destinations>, viewModel: HomeViewModel) {

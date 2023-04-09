@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalPathApi::class)
+
 package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
 import androidx.compose.runtime.State
@@ -5,23 +7,28 @@ import androidx.compose.runtime.mutableStateOf
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.DisplayableException
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
-import com.x256n.sdtrainimagepreparer.desktop.usecase.CheckProjectUseCase
-import com.x256n.sdtrainimagepreparer.desktop.usecase.LoadImageModelsUseCase
-import com.x256n.sdtrainimagepreparer.desktop.usecase.ReadCaptionUseCase
-import com.x256n.sdtrainimagepreparer.desktop.usecase.RemoveIncorrectThumbnailsUseCase
+import com.x256n.sdtrainimagepreparer.desktop.model.KeywordModel
+import com.x256n.sdtrainimagepreparer.desktop.usecase.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 
+@ExperimentalPathApi
 class HomeViewModel(
     private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
     private val checkProject: CheckProjectUseCase,
     private val loadImageModels: LoadImageModelsUseCase,
     private val readCaption: ReadCaptionUseCase,
-    private val removeIncorrectThumbnails: RemoveIncorrectThumbnailsUseCase
+    private val writeCaption: WriteCaptionUseCase,
+    private val removeIncorrectThumbnails: RemoveIncorrectThumbnailsUseCase,
+    private val extractCaptionKeywords: ExtractCaptionKeywordsUseCase,
+    private val joinCaption: JoinCaptionUseCase,
+    private val splitCaption: SplitCaptionUseCase
 ) : KoinComponent {
     private val _log = LoggerFactory.getLogger("HomeViewModel")
 
@@ -47,6 +54,12 @@ class HomeViewModel(
                     is HomeEvent.ImageSelected -> {
                         imageSelected(event.index)
                     }
+                    is HomeEvent.KeywordSelected -> {
+                        keywordSelected(event.keywordModel)
+                    }
+                    is HomeEvent.CaptionContentChanged -> {
+                        captionContentChanged(event.value)
+                    }
                     is HomeEvent.ShowNextImage -> {
                         imageSelected(if (state.value.dataIndex == state.value.data.lastIndex) 0 else state.value.dataIndex + 1)
                     }
@@ -69,35 +82,102 @@ class HomeViewModel(
         }
     }
 
+    private suspend fun captionContentChanged(value: String) {
+        _state.value = state.value.copy(
+            captionContent = value
+        )
+        withContext(dispatcherProvider.default) {
+            if (value.contains(',')) {
+                val captionContent = value.substring(0, value.lastIndexOf(','))
+                if (captionContent.isNotBlank()) {
+                    val captionKeywordList = splitCaption(captionContent)
+                    _state.value = state.value.copy(
+                        keywordList = state.value.addMissingKeywords(captionKeywordList)
+                    )
+                    writeCaption(state.value[state.value.dataIndex], captionKeywordList)
+                }
+            }
+        }
+    }
+
     private suspend fun imageSelected(index: Int) {
+        _log.debug("Selected image: index = $index, name = ${state.value[index].imagePath.name}")
+        // Save current keywords to caption file
+        val currentKeywordList = splitCaption(state.value.captionContent)
+        writeCaption(state.value[state.value.dataIndex], currentKeywordList)
+        // Add missing keywords to list
+        _state.value = state.value.copy(
+            keywordList = state.value.addMissingKeywords(currentKeywordList)
+        )
+
+        // Change selected image
         _state.value = state.value.copy(
             dataIndex = index,
             captionContent = readCaption(state.value[index])
         )
-        _log.debug("Selected image: index = $index, name = ${state.value[index].imagePath.name}")
+        actualizeCaptions()
+    }
+
+    private suspend fun keywordSelected(keywordModel: KeywordModel) {
+        _log.debug("Clicked keyword: ${keywordModel.keyword}")
+
+        val activeModel = state.value[state.value.dataIndex]
+        val captionList = extractCaptionKeywords(activeModel).toMutableList()
+
+        if (keywordModel.isAdded) {
+            captionList.removeIf { it.keyword == keywordModel.keyword }
+        } else {
+            captionList.add(keywordModel.copy(isAdded = true))
+        }
+        val keywordSet = captionList.map { it.keyword }
+        writeCaption(activeModel, keywordSet)
+
+        _state.value = state.value.copy(
+            keywordList = state.value.keywordList.map {
+                it.copy(isAdded = keywordSet.contains(it.keyword))
+            },
+            captionContent = joinCaption(keywordSet)
+        )
     }
 
     private suspend fun loadProject(projectDirectory: Path) {
-        _state.value = state.value.copy(
-            projectDirectory = null,
-            isOpenProject = false
-        )
-        checkProject(projectDirectory)
-
-        removeIncorrectThumbnails(projectDirectory)
-
-        loadImageModels(projectDirectory) { model ->
+        withContext(dispatcherProvider.default) {
             _state.value = state.value.copy(
-                data = state.value.data.toMutableList().apply {
-                    add(model)
-                    sortBy { it.imageName }
+                projectDirectory = null,
+                isOpenProject = false
+            )
+            checkProject(projectDirectory)
+
+            removeIncorrectThumbnails(projectDirectory)
+
+            val data = loadImageModels(projectDirectory)
+            val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
+            val keywordMap = data.map { extractCaptionKeywords(it) }
+                .flatten()
+                .toSet()
+                .toList()
+
+
+            _state.value = state.value.copy(
+                projectDirectory = projectDirectory,
+                data = data,
+                dataIndex = dataIndex,
+                keywordList = keywordMap,
+                captionContent = joinCaption(extractCaptionKeywords(data[dataIndex]).map { it.keyword })
+            )
+            actualizeCaptions()
+        }
+    }
+
+    private suspend fun actualizeCaptions() {
+        if (state.value.hasData) {
+            val currentModel = state.value[state.value.dataIndex]
+            val captionKeywordList = extractCaptionKeywords(currentModel).map { it.keyword }
+            _state.value = state.value.copy(
+                keywordList = state.value.keywordList.map {
+                    it.copy(isAdded = captionKeywordList.contains(it.keyword))
                 }
             )
         }
-
-        _state.value = state.value.copy(
-            projectDirectory = projectDirectory,
-            dataIndex = 0
-        )
     }
 }

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalPathApi::class)
+
 package com.x256n.sdtrainimagepreparer.desktop.di
 
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
@@ -16,6 +18,7 @@ import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+import kotlin.io.path.ExperimentalPathApi
 
 object ModulesInjection {
     val viewmodelBeans = module {
@@ -25,7 +28,11 @@ object ModulesInjection {
                 checkProject = get(),
                 loadImageModels = get(),
                 readCaption = get(),
-                removeIncorrectThumbnails = get()
+                removeIncorrectThumbnails = get(),
+                extractCaptionKeywords = get(),
+                writeCaption = get(),
+                joinCaption = get(),
+                splitCaption = get()
             )
         }
         factoryOf(::AboutViewModel)
@@ -39,6 +46,9 @@ object ModulesInjection {
         factoryOf(::ReadCaptionUseCase)
         factoryOf(::LoadImageModelsUseCase)
         factoryOf(::RemoveIncorrectThumbnailsUseCase)
+        factoryOf(::ExtractCaptionKeywordsUseCase)
+        factoryOf(::SplitCaptionUseCase)
+        factoryOf(::JoinCaptionUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)

@@ -1,9 +1,11 @@
 package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
+import WinTextField
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.CircularProgressIndicator
@@ -46,8 +48,10 @@ import org.koin.java.KoinJavaComponent
 import org.slf4j.LoggerFactory
 import java.awt.Cursor
 import java.nio.file.Path
+import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 
+@ExperimentalPathApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalNavigationApi
@@ -84,218 +88,276 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
     var previewPanelSize by remember { mutableStateOf(IntSize.Zero) }
     var tagsPanelWidth by remember { mutableStateOf(168.dp) }
     var captionPanelHeight by remember { mutableStateOf(64.dp) }
-    val lazyColumnState = rememberLazyListState()
+    val lazyDataState = rememberLazyListState()
+    val lazyKeywordState = rememberLazyListState()
     var mainImagePainter by remember { mutableStateOf<ImageBitmap?>(null) }
 
     rememberSaveable(state.dataIndex) {
         if (state.hasData) {
-            coroutineScope.launch {
-                lazyColumnState.animateScrollToItem(state.dataIndex)
-            }
             coroutineScope.launch(Dispatchers.IO) {
                 mainImagePainter = pathPainter(state[state.dataIndex].absoluteImagePath)
             }
         }
     }
 
-    if (!state.isLoading) {
-        Column(
+//    if (!state.isLoading) {
+    Column(
+        modifier = Modifier
+            .padding(MaterialTheme.spaces.small)
+            .fillMaxSize()
+            .onKeyEvent {
+                return@onKeyEvent if (it.key == Key.Tab) {
+                    log.debug("Key event: ${it.key}, shift: ${it.isShiftPressed}")
+                    if (it.isShiftPressed) {
+                        viewModel.onEvent(HomeEvent.ShowPrevImage)
+                    } else {
+                        viewModel.onEvent(HomeEvent.ShowNextImage)
+                    }
+                    coroutineScope.launch {
+                        lazyDataState.animateScrollToItem(state.dataIndex)
+                    }
+                    true
+                } else false
+            }
+    ) {
+
+        Row(
             modifier = Modifier
-                .padding(MaterialTheme.spaces.small)
-                .fillMaxSize()
-                .onKeyEvent {
-                    return@onKeyEvent if (it.key == Key.Tab) {
-                        log.debug("Key event: ${it.key}, shift: ${it.isShiftPressed}")
-                        if (it.isShiftPressed) {
-                            viewModel.onEvent(HomeEvent.ShowPrevImage)
-                        } else {
-                            viewModel.onEvent(HomeEvent.ShowNextImage)
-                        }
-                        true
-                    } else false
-                }
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(MaterialTheme.spaces.extraSmall)
         ) {
 
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(MaterialTheme.spaces.extraSmall)
+                    .fillMaxHeight()
+                    .width(explorerPanelWidth)
+            ) {
+                var thumbnailSize by remember { mutableStateOf(IntSize.Zero) }
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onSizeChanged {
+                            thumbnailSize = it
+                        },
+                    state = lazyDataState
+                ) {
+                    itemsIndexed(state.data) { index, item ->
+                        var modifier: Modifier = Modifier
+                        var textColor = Color.Black
+                        if (index == state.dataIndex) {
+                            modifier = Modifier
+                                .background(Color.DarkGray)
+                            textColor = Color.White
+                        }
+
+                        Column(
+                            modifier = modifier
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AsyncImage(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height((thumbnailSize.width / 1.7).dp)
+                                    .clickable {
+                                        viewModel.onEvent(HomeEvent.ImageSelected(index))
+                                    },
+                                load = {
+                                    pathPainter(item.thumbnailPath)
+                                },
+                                initialImage = painterResource("icon.ico"),
+                                painterFor = { remember { BitmapPainter(it) } },
+                                contentDescription = "Image $index",
+                                contentScale = ContentScale.Fit
+                            )
+                            Text(
+                                modifier = Modifier,
+                                text = item.imageName,
+                                fontSize = 8.sp,
+                                color = textColor
+                            )
+                            Text(
+                                modifier = Modifier,
+                                text = "${item.imageWidth} x ${item.imageHeight}",
+                                fontSize = 10.sp,
+                                color = textColor
+                            )
+                            Spacer(
+                                modifier = Modifier
+                                    .height(MaterialTheme.spaces.extraSmall)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier
+                .background(Color.Gray)
+                .fillMaxHeight()
+                .width(spacerSize)
+                .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)))
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        matcher = PointerMatcher.Primary
+                    ) {
+                        if (previewPanelSize.width.dp > spacerSize || it.x < 0) {
+                            explorerPanelWidth += it.x.dp
+                        }
+                    }
+                })
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .onSizeChanged {
+                        previewPanelSize = it
+                    }
+                    .weight(1f)
             ) {
 
-                Column(
+                Row(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .width(explorerPanelWidth)
-                ) {
-                    var thumbnailSize by remember { mutableStateOf(IntSize.Zero) }
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .onSizeChanged {
-                                thumbnailSize = it
-                            },
-                        state = lazyColumnState
-                    ) {
-                        itemsIndexed(state.data) { index, item ->
-                            var modifier: Modifier = Modifier
-                            var textColor = Color.Black
-                            if (index == state.dataIndex) {
-                                modifier = Modifier
-                                    .background(Color.DarkGray)
-                                textColor = Color.White
-                            }
-
-                            Column(
-                                modifier = modifier
-                                    .fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                AsyncImage(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height((thumbnailSize.width / 1.7).dp)
-                                        .clickable {
-                                            viewModel.onEvent(HomeEvent.ImageSelected(index))
-                                        },
-                                    load = {
-                                        pathPainter(item.thumbnailPath)
-                                    },
-                                    initialImage = painterResource("icon.ico"),
-                                    painterFor = { remember { BitmapPainter(it) } },
-                                    contentDescription = "Image $index",
-                                    contentScale = ContentScale.Fit
-                                )
-                                Text(
-                                    modifier = Modifier,
-                                    text = item.imageName,
-                                    fontSize = 8.sp,
-                                    color = textColor
-                                )
-                                Text(
-                                    modifier = Modifier,
-                                    text = "${item.imageWidth} x ${item.imageHeight}",
-                                    fontSize = 10.sp,
-                                    color = textColor
-                                )
-                                Spacer(
-                                    modifier = Modifier
-                                        .height(MaterialTheme.spaces.extraSmall)
-                                )
-                            }
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier
-                    .background(Color.Gray)
-                    .fillMaxHeight()
-                    .width(spacerSize)
-                    .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)))
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            matcher = PointerMatcher.Primary
-                        ) {
-                            if (previewPanelSize.width.dp > spacerSize || it.x < 0) {
-                                explorerPanelWidth += it.x.dp
-                            }
-                        }
-                    })
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .background(Color.Yellow)
-                        .onSizeChanged {
-                            previewPanelSize = it
-                        }
+                        .fillMaxWidth()
                         .weight(1f)
                 ) {
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        if (state.data.isNotEmpty()) {
-                            if (mainImagePainter == null) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            } else {
-                                Image(
-                                    modifier = Modifier
-                                        .fillMaxSize(),
-                                    painter = BitmapPainter(mainImagePainter!!),
-                                    contentDescription = state[state.dataIndex].imagePath.name,
-                                    contentScale = ContentScale.Fit
-                                )
+                    if (state.data.isNotEmpty()) {
+                        if (mainImagePainter == null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
                             }
+                        } else {
+                            Image(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                painter = BitmapPainter(mainImagePainter!!),
+                                contentDescription = state[state.dataIndex].imagePath.name,
+                                contentScale = ContentScale.Fit
+                            )
                         }
                     }
-                    Spacer(modifier = Modifier
-                        .background(Color.Gray)
-                        .fillMaxWidth()
-                        .height(spacerSize)
-                        .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR)))
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                matcher = PointerMatcher.Primary
-                            ) {
-                                if (previewPanelSize.height.dp > spacerSize || it.y > 0) {
-                                    captionPanelHeight -= it.y.dp
-                                }
-                            }
-                        })
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Cyan)
-                            .height(captionPanelHeight)
-                    ) {
-                        Text(
-                            text = state.captionContent
-                        )
-                    }
-
                 }
                 Spacer(modifier = Modifier
                     .background(Color.Gray)
-                    .fillMaxHeight()
-                    .width(spacerSize)
-                    .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)))
+                    .fillMaxWidth()
+                    .height(spacerSize)
+                    .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR)))
                     .pointerInput(Unit) {
                         detectDragGestures(
                             matcher = PointerMatcher.Primary
                         ) {
-                            if (previewPanelSize.width.dp > spacerSize || it.x < 0) {
-                                tagsPanelWidth -= it.x.dp
+                            if (previewPanelSize.height.dp > spacerSize || it.y > 0) {
+                                captionPanelHeight -= it.y.dp
                             }
                         }
                     })
 
-                Column(
+                Row(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .background(Color.Green)
-                        .width(tagsPanelWidth)
+                        .fillMaxWidth()
+                        .height(captionPanelHeight)
                 ) {
-                    Text(
-                        text = "Tags"
+                    WinTextField(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        text = state.captionContent,
+                        onValueChange = {
+                            viewModel.onEvent(HomeEvent.CaptionContentChanged(it))
+                        }
                     )
+                }
+
+            }
+            Spacer(modifier = Modifier
+                .background(Color.Gray)
+                .fillMaxHeight()
+                .width(spacerSize)
+                .pointerHoverIcon(icon = PointerIcon(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)))
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        matcher = PointerMatcher.Primary
+                    ) {
+                        if (previewPanelSize.width.dp > spacerSize || it.x < 0) {
+                            tagsPanelWidth -= it.x.dp
+                        }
+                    }
+                })
+
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .background(Color.Green)
+                    .width(tagsPanelWidth)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    state = lazyKeywordState
+                ) {
+                    items(state.keywordList) { item ->
+                        var modifier: Modifier = Modifier
+                        var textColor = Color.Black
+                        if (item.isAdded) {
+                            modifier = Modifier
+                                .background(Color.DarkGray)
+                            textColor = Color.White
+                        }
+                        Row(
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.onEvent(HomeEvent.KeywordSelected(item))
+                                },
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .padding(horizontal = MaterialTheme.spaces.medium, vertical = MaterialTheme.spaces.small)
+                                    .fillMaxWidth(),
+                                text = item.keyword,
+                                color = textColor
+                            )
+                        }
+                    }
                 }
             }
         }
-    } else {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .height(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            CircularProgressIndicator()
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(end = MaterialTheme.spaces.medium),
+                contentAlignment = Alignment.Center
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(16.dp)
+                    )
+                }
+            }
+            Text(
+                modifier = Modifier
+                    .weight(0.3f)
+                    .padding(horizontal = 3.dp, vertical = 1.dp),
+                fontSize = MaterialTheme.typography.body2.fontSize,
+                text = state.statusText
+            )
+            Text(
+                modifier = Modifier
+                    .weight(0.7f)
+                    .horizontalScroll(state = rememberScrollState())
+                    .padding(horizontal = MaterialTheme.spaces.medium, vertical = 1.dp),
+                fontSize = MaterialTheme.typography.body2.fontSize,
+                text = if (state.errorMessage == null) "" else "Error: " + state.errorMessage,
+                color = if (state.errorMessage == null) Color.Transparent else Color.Red
+            )
         }
     }
 }

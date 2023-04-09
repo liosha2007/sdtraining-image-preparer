@@ -4,6 +4,7 @@ import com.x256n.sdtrainimagepreparer.desktop.common.CantLoadCaptionException
 import com.x256n.sdtrainimagepreparer.desktop.common.CantSaveCaptionException
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
+import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainimagepreparer.desktop.model.ImageModel
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
@@ -18,10 +19,14 @@ interface CaptionRepository {
     suspend fun save(model: ImageModel, captionContent: String)
 
     suspend fun load(model: ImageModel): String
+
+    fun split(captionContent: String): List<String>
+    fun join(keywordList: List<String>): String
 }
 
 class CaptionRepositoryImpl(
-    private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider()
+    private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
+    private val configManager: ConfigManager
 ) : CaptionRepository {
     private val _log = LoggerFactory.getLogger(this::class.java)
 
@@ -29,7 +34,7 @@ class CaptionRepositoryImpl(
         withContext(dispatcherProvider.default) {
             val captionPath = model.captionPath
             try {
-                if (!Files.isRegularFile(captionPath) || !Files.isWritable(captionPath)) {
+                if (Files.exists(captionPath) && (!Files.isRegularFile(captionPath) || !Files.isWritable(captionPath))) {
                     throw CantSaveCaptionException(captionPath)
                 } else {
                     runInterruptible(dispatcherProvider.io) {
@@ -63,5 +68,17 @@ class CaptionRepositoryImpl(
                 throw CantLoadCaptionException(captionPath)
             }
         }
+    }
+
+    override fun split(captionContent: String): List<String> {
+        return captionContent.split(configManager.captionDelimiter)
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .toSet()
+            .toList()
+    }
+
+    override fun join(keywordList: List<String>): String {
+        return keywordList.joinToString("${configManager.captionDelimiter} ")
     }
 }

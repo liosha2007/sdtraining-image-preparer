@@ -22,6 +22,7 @@ class ConfigManager {
         }
 
     val thumbnailsWidth: Int = 168
+    val captionDelimiter: String = ","
 
     companion object {
         val config = Properties()

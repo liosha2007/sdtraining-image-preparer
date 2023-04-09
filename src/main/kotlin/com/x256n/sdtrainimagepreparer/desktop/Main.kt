@@ -25,7 +25,9 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.PrintLogger
 import org.koin.dsl.module
 import java.awt.Dimension
+import kotlin.io.path.ExperimentalPathApi
 
+@ExperimentalPathApi
 @ExperimentalMaterialApi
 @ExperimentalNavigationApi
 @ExperimentalSerializationApi

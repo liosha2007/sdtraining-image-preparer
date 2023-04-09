@@ -17,9 +17,11 @@ import com.x256n.sdtrainimagepreparer.desktop.ui.screen.component.MainMenu
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeScreen
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeViewModel
 import org.koin.java.KoinJavaComponent.inject
+import kotlin.io.path.ExperimentalPathApi
 
 typealias Navigator<T> = ComposeNavigatorByKey<T, Destinations>
 
+@ExperimentalPathApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
