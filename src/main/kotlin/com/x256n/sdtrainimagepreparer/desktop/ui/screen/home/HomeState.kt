@@ -1,5 +1,7 @@
 package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import com.x256n.sdtrainimagepreparer.desktop.model.ImageModel
 import com.x256n.sdtrainimagepreparer.desktop.model.KeywordModel
 import java.nio.file.Path
@@ -13,6 +15,10 @@ data class HomeState(
     val dataIndex: Int = -1,
     val captionContent: String = "",
     val keywordList: List<KeywordModel> = emptyList(),
+    val isEditMode: Boolean = false,
+    val mainImageSize: Size = Size(0f, 0f),
+    val cropOffset: Offset = Offset(0f, 0f),
+    val cropSize: Size = Size(512f, 512f)
 ) {
     operator fun get(index: Int): ImageModel {
         return data[index]

@@ -4,6 +4,8 @@ package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.DisplayableException
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
+import kotlin.math.min
 
 @ExperimentalPathApi
 class HomeViewModel(
@@ -66,6 +69,21 @@ class HomeViewModel(
                     is HomeEvent.ShowPrevImage -> {
                         imageSelected(if (state.value.dataIndex == 0) state.value.data.lastIndex else state.value.dataIndex - 1)
                     }
+                    is HomeEvent.EditModeClicked -> {
+                        editMode(event.enable)
+                    }
+                    is HomeEvent.CropRectChanged -> {
+                        cropRectChanged(event.offset, event.size)
+                    }
+                    is HomeEvent.MainImageScaleChanged -> {
+                        mainImageScale(event.imageSize)
+                    }
+                    is HomeEvent.ChangeAreaToSize -> {
+                        changeAreaToSize(event.targetSize)
+                    }
+                    is HomeEvent.CropApplyClicked -> {
+                        cropApply()
+                    }
 
                     else -> {
                         TODO("Not implemented: $event")
@@ -80,6 +98,61 @@ class HomeViewModel(
                 _state.value = state.value.copy(isLoading = false)
             }
         }
+    }
+
+    private fun mainImageScale(imageSize: Size) {
+        _state.value = state.value.copy(mainImageSize = imageSize)
+    }
+
+    private fun editMode(enable: Boolean) {
+        _state.value = state.value.copy(
+            isEditMode = enable,
+            cropOffset = if (enable) state.value.cropOffset else Offset(0f, 0f),
+            cropSize = if (enable) state.value.cropSize else Size(
+                min(512f, state.value.mainImageSize.width),
+                min(512f, state.value.mainImageSize.height)
+            )
+        )
+    }
+
+    private fun cropApply() {
+        _log.debug("cropRectChanged: offset = ${state.value.cropOffset}, size = ${state.value.cropSize}")
+        TODO("Not implemented cropping image")
+    }
+
+    private fun changeAreaToSize(targetSize: Float) {
+        var x = state.value.cropOffset.x
+        var y = state.value.cropOffset.y
+        var width = targetSize
+        var height = targetSize
+        val imageWidth = state.value.mainImageSize.width
+        val imageHeight = state.value.mainImageSize.height
+
+        if (width > imageWidth) {
+            x = 0f
+            width = imageWidth
+        } else if (x + width > imageWidth) {
+            x = imageWidth - width
+        }
+
+        if (height > imageHeight) {
+            y = 0f
+            height = imageHeight
+        } else if (y + height > imageHeight) {
+            y = imageHeight - height
+        }
+
+        _state.value = state.value.copy(
+            cropOffset = Offset(x, y),
+            cropSize = Size(width, height)
+        )
+    }
+
+    private fun cropRectChanged(offset: Offset, size: Size) {
+        _state.value = state.value.copy(
+            cropOffset = offset,
+            cropSize = size
+        )
     }
 
     private fun captionContentChanged(value: String) {

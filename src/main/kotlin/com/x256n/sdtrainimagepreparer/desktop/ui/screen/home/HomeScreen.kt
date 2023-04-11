@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -28,7 +27,6 @@ import com.chrynan.navigation.ExperimentalNavigationApi
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainimagepreparer.desktop.navigation.Navigator
-import com.x256n.sdtrainimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.component.MainMenu
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.component.*
 import kotlinx.coroutines.launch
@@ -96,6 +94,12 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                 } else false
             }
     ) {
+
+        HeaderToolsPanel(
+            modifier = Modifier
+                .height(24.dp),
+            viewModel = viewModel
+        )
 
         Row(
             modifier = Modifier
