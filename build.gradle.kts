@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.x256n.sdtrainimagepreparer.desktop"
-version = "0.1.0"
+version = "1.0.0"
 
 repositories {
     google()
@@ -35,25 +35,44 @@ dependencies {
     implementation("io.insert-koin:koin-core:3.3.3")
 //    implementation("io.insert-koin:koin-core-jvm:3.3.3")
 
-    implementation("ch.qos.logback:logback-classic:1.4.6")
+    // Fixes Warning: org.lwjgl.util.nfd.NativeFileDialog: can't find referenced class javax.annotation.Nullable
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
+
+    // log4j2
+    implementation("org.apache.logging.log4j:log4j-api:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "15"
+    kotlinOptions {
+        jvmTarget = "11"
+//        javaParameters = true
+        // -opt-in=kotlin.RequiresOptIn
+        // -Xopt-in=kotlin.RequiresOptIn
+//        freeCompilerArgs = freeCompilerArgs + listOf("-Xopt-in=kotlin.RequiresOptIn")
+    }
 }
 
 compose.desktop {
     application {
         mainClass = "com.x256n.sdtrainimagepreparer.desktop.MainKt"
+        jvmArgs += listOf(
+            "-XX:ErrorFile=hs_err.log.txt",
+//            "-XX:-HeapDumpOnOutOfMemoryError",
+//            "-XX:HeapDumpPath=.log/dump.hprof",
+        )
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Msi)
             packageName = "sdtrain-image-preparer"
-            packageVersion = "1.0.0"
-
-//            windows {
-//                shortcut = true
-//                iconFile.set(project.file("icon.ico"))
-//            }
+            packageVersion = project.version.toString()
+            windows {
+                dirChooser = true
+                menuGroup = packageName
+                shortcut = true
+                menu = true
+                iconFile.set(project.file("src/main/resources/icon.ico"))
+            }
         }
     }
 }

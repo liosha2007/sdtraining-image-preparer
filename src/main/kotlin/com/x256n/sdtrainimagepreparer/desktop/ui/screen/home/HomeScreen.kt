@@ -187,7 +187,6 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
             RightKeywordsPanel(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .background(Color.Green)
                     .width(tagsPanelWidth),
                 viewModel = viewModel,
                 lazyState = lazyKeywordState

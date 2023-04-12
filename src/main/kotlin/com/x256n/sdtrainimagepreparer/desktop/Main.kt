@@ -34,22 +34,21 @@ import kotlin.io.path.ExperimentalPathApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 fun main() {
-
     ConfigManager.reloadConfig()
 
     configureKoin()
 
     application {
         Window(
-            onCloseRequest = ::exitApplication,
-            title = "sdtrain-image-preparer",
-            icon = painterResource("icon.ico"),
-            resizable = true,
             state = WindowState(
                 width = 840.dp,
                 height = 560.dp,
                 position = WindowPosition.Aligned(Alignment.Center)
-            )
+            ),
+            onCloseRequest = ::exitApplication,
+            title = "sdtrain-image-preparer",
+            icon = painterResource("icon.ico"),
+            resizable = true
         ) {
             this.window.minimumSize = Dimension(640, 480)
             MaterialTheme {
