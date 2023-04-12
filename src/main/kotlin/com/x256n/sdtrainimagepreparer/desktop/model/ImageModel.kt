@@ -1,5 +1,6 @@
 package com.x256n.sdtrainimagepreparer.desktop.model
 
+import androidx.compose.ui.geometry.Size
 import com.x256n.sdtrainimagepreparer.desktop.common.Constants
 import java.nio.file.Path
 import kotlin.io.path.name
@@ -8,8 +9,7 @@ import kotlin.io.path.nameWithoutExtension
 data class ImageModel(
     val projectDirectory: Path,
     val imagePath: Path,
-    var imageWidth: Int = 0,
-    var imageHeight: Int = 0,
+    var imageSize: Size = Size(0f, 0f),
     val captionExtension: String,
 ) {
     val thumbnailPath

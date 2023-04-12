@@ -139,6 +139,24 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                             .height(MaterialTheme.spaces.small)
                     )
                     Row {
+                        Text(
+                            modifier = Modifier
+
+                                .padding(horizontal = MaterialTheme.spaces.small),
+                            text = "Target image resolution: "
+                        )
+                        WinTextField(modifier = Modifier
+                            .weight(1f),
+                            text = state.targetImageResolution.toString(),
+                            onValueChange = {
+                                viewModel.onEvent(CreateProjectEvent.TargetImageResolutionChanged(it.toIntOrNull() ?: 512))
+                            })
+                    }
+                    Spacer(
+                        modifier = Modifier
+                            .height(MaterialTheme.spaces.small)
+                    )
+                    Row {
                         WinCheckbox(
                             text = "Override (delete) existing project",
                             isChecked = state.isOverrideExistingProject,

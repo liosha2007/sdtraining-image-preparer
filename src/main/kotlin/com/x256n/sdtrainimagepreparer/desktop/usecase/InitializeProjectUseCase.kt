@@ -19,11 +19,13 @@ class InitializeProjectUseCase(
         imageDirectory: String,
         overrideExistingProject: Boolean,
         captionExtension: String,
+        targetImageResolution: Int,
         mergeExistingCaptionFiles: Boolean,
-        mergeExistingTxtFiles: Boolean
+        mergeExistingTxtFiles: Boolean,
     ) {
         val model = ProjectConfig(
             captionExtension = captionExtension,
+            targetImageResolution = targetImageResolution,
             mergeExistingCaptionFiles = mergeExistingCaptionFiles,
             mergeExistingTxtFiles = mergeExistingTxtFiles
         )

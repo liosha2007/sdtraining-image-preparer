@@ -26,62 +26,64 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
             .padding(start = 3.dp, bottom = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (state.isEditMode) {
-            WinButton(modifier = Modifier
-                .fillMaxHeight(),
-                onClick = {
-                    viewModel.onEvent(HomeEvent.CropApplyClicked)
+        if (state.isProjectLoaded) {
+            if (state.isEditMode) {
+                WinButton(modifier = Modifier
+                    .fillMaxHeight(),
+                    onClick = {
+                        viewModel.onEvent(HomeEvent.CropApplyClicked)
+                    }
+                ) {
+                    Text(
+                        text = "Apply crop",
+                        fontSize = MaterialTheme.typography.body2.fontSize
+                    )
                 }
-            ) {
-                Text(
-                    text = "Apply crop",
-                    fontSize = MaterialTheme.typography.body2.fontSize
-                )
-            }
-            WinButton(modifier = Modifier
-                .fillMaxHeight(),
-                onClick = {
-                    viewModel.onEvent(HomeEvent.ChangeAreaToSize(512f))
+                WinButton(modifier = Modifier
+                    .fillMaxHeight(),
+                    onClick = {
+                        viewModel.onEvent(HomeEvent.ChangeAreaToSize(512f))
+                    }
+                ) {
+                    Text(
+                        text = "512x512",
+                        fontSize = MaterialTheme.typography.body2.fontSize,
+                    )
                 }
-            ) {
-                Text(
-                    text = "512x512",
-                    fontSize = MaterialTheme.typography.body2.fontSize,
-                )
-            }
-            WinButton(modifier = Modifier
-                .fillMaxHeight(),
-                onClick = {
-                    viewModel.onEvent(HomeEvent.ChangeAreaToSize(768f))
+                WinButton(modifier = Modifier
+                    .fillMaxHeight(),
+                    onClick = {
+                        viewModel.onEvent(HomeEvent.ChangeAreaToSize(768f))
+                    }
+                ) {
+                    Text(
+                        text = "768x768",
+                        fontSize = MaterialTheme.typography.body2.fontSize,
+                    )
                 }
-            ) {
-                Text(
-                    text = "768x768",
-                    fontSize = MaterialTheme.typography.body2.fontSize,
-                )
-            }
-            WinButton(modifier = Modifier
-                .fillMaxHeight(),
-                onClick = {
-                    viewModel.onEvent(HomeEvent.EditModeClicked(false))
+                WinButton(modifier = Modifier
+                    .fillMaxHeight(),
+                    onClick = {
+                        viewModel.onEvent(HomeEvent.EditModeClicked(false))
+                    }
+                ) {
+                    Text(
+                        text = "Cancel",
+                        fontSize = MaterialTheme.typography.body2.fontSize
+                    )
                 }
-            ) {
-                Text(
-                    text = "Cancel",
-                    fontSize = MaterialTheme.typography.body2.fontSize
-                )
-            }
-        } else {
-            WinButton(modifier = Modifier
-                .fillMaxHeight(),
-                onClick = {
-                    viewModel.onEvent(HomeEvent.EditModeClicked(true))
+            } else {
+                WinButton(modifier = Modifier
+                    .fillMaxHeight(),
+                    onClick = {
+                        viewModel.onEvent(HomeEvent.EditModeClicked(true))
+                    }
+                ) {
+                    Text(
+                        text = "Crop mode",
+                        fontSize = MaterialTheme.typography.body2.fontSize
+                    )
                 }
-            ) {
-                Text(
-                    text = "Crop mode",
-                    fontSize = MaterialTheme.typography.body2.fontSize
-                )
             }
         }
     }

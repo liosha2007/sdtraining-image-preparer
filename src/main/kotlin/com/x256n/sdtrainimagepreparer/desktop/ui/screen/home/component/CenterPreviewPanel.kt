@@ -57,7 +57,7 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
     var activeType by remember { mutableStateOf<ActiveType>(ActiveType.None) }
     val textMeasure = rememberTextMeasurer()
 
-    rememberSaveable(state.dataIndex) {
+    rememberSaveable(state.dataIndex, state.data) {
         if (state.hasData) {
             coroutineScope.launch(Dispatchers.IO) {
                 mainImagePainter = pathPainter(state[state.dataIndex].absoluteImagePath)

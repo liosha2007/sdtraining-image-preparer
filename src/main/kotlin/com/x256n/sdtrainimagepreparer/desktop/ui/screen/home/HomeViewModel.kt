@@ -31,7 +31,8 @@ class HomeViewModel(
     private val removeIncorrectThumbnails: RemoveIncorrectThumbnailsUseCase,
     private val extractCaptionKeywords: ExtractCaptionKeywordsUseCase,
     private val joinCaption: JoinCaptionUseCase,
-    private val splitCaption: SplitCaptionUseCase
+    private val splitCaption: SplitCaptionUseCase,
+    private val cropResizeImage: CropResizeImageUseCase
 ) : KoinComponent {
     private val _log = LoggerFactory.getLogger("HomeViewModel")
 
@@ -115,9 +116,14 @@ class HomeViewModel(
         )
     }
 
-    private fun cropApply() {
+    private suspend fun cropApply() {
         _log.debug("cropRectChanged: offset = ${state.value.cropOffset}, size = ${state.value.cropSize}")
-        TODO("Not implemented cropping image")
+        val imageModel = state.value.data[state.value.dataIndex]
+        val newImageModel = cropResizeImage(imageModel, state.value.cropOffset, state.value.cropSize)
+        _state.value = state.value.copy(
+            data = state.value.data.map { if (it == imageModel) newImageModel else it },
+            isEditMode = false
+        )
     }
 
     private fun changeAreaToSize(targetSize: Float) {
@@ -202,31 +208,37 @@ class HomeViewModel(
     }
 
     private suspend fun loadProject(projectDirectory: Path) {
-        withContext(dispatcherProvider.default) {
-            _state.value = HomeState(
-                projectDirectory = null,
-                isOpenProject = false
-            )
-            checkProject(projectDirectory)
+        try {
+            withContext(dispatcherProvider.default) {
+                _state.value = HomeState(
+                    projectDirectory = null,
+                    isOpenProject = false
+                )
+                checkProject(projectDirectory)
 
-            removeIncorrectThumbnails(projectDirectory)
+                removeIncorrectThumbnails(projectDirectory)
 
-            val data = loadImageModels(projectDirectory)
-            val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
-            val keywordMap = data.map { extractCaptionKeywords(it) }
-                .flatten()
-                .toSet()
-                .toList()
+                val data = loadImageModels(projectDirectory)
+                val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
+                val keywordMap = data.map { extractCaptionKeywords(it) }
+                    .flatten()
+                    .toSet()
+                    .toList()
 
 
-            _state.value = state.value.copy(
-                projectDirectory = projectDirectory,
-                data = data,
-                dataIndex = dataIndex,
-                keywordList = keywordMap,
-                captionContent = joinCaption(extractCaptionKeywords(data[dataIndex]).map { it.keyword })
-            )
-            actualizeCaptions()
+                _state.value = state.value.copy(
+                    projectDirectory = projectDirectory,
+                    data = data,
+                    dataIndex = dataIndex,
+                    keywordList = keywordMap,
+                    captionContent = joinCaption(extractCaptionKeywords(data[dataIndex]).map { it.keyword })
+                )
+                actualizeCaptions()
+            }
+            _state.value = state.value.copy(isProjectLoaded = true)
+        } catch (e: Exception) {
+            _state.value = state.value.copy(isProjectLoaded = false)
+            throw e
         }
     }
 

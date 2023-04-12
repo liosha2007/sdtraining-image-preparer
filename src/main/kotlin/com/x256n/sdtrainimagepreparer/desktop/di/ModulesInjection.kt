@@ -5,10 +5,7 @@ package com.x256n.sdtrainimagepreparer.desktop.di
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
-import com.x256n.sdtrainimagepreparer.desktop.repository.CaptionRepository
-import com.x256n.sdtrainimagepreparer.desktop.repository.CaptionRepositoryImpl
-import com.x256n.sdtrainimagepreparer.desktop.repository.ProjectConfigRepository
-import com.x256n.sdtrainimagepreparer.desktop.repository.ProjectConfigRepositoryImpl
+import com.x256n.sdtrainimagepreparer.desktop.repository.*
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.about.AboutViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.createproject.CreateProjectViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.settings.SettingsViewModel
@@ -32,7 +29,8 @@ object ModulesInjection {
                 extractCaptionKeywords = get(),
                 writeCaption = get(),
                 joinCaption = get(),
-                splitCaption = get()
+                splitCaption = get(),
+                cropResizeImage = get()
             )
         }
         factoryOf(::AboutViewModel)
@@ -49,6 +47,7 @@ object ModulesInjection {
         factoryOf(::ExtractCaptionKeywordsUseCase)
         factoryOf(::SplitCaptionUseCase)
         factoryOf(::JoinCaptionUseCase)
+        factoryOf(::CropResizeImageUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)
@@ -56,6 +55,7 @@ object ModulesInjection {
     val repositoryBeans = module {
         factoryOf(::ProjectConfigRepositoryImpl) { bind<ProjectConfigRepository>() }
         factoryOf(::CaptionRepositoryImpl) { bind<CaptionRepository>() }
+        factoryOf(::ThumbnailsRepositoryImpl) { bind<ThumbnailsRepository>() }
     }
     val otherBeans = module {
         factoryOf(::StandardDispatcherProvider) { bind<DispatcherProvider>() }

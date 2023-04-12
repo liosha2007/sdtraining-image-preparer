@@ -9,5 +9,6 @@ data class CreateProjectState(
     val isMergeExistingCaptionFiles: Boolean = true,
     val isMergeExistingTxtFiles: Boolean = true,
 
-    val isProjectCreated: Boolean = false
+    val isProjectCreated: Boolean = false,
+    val targetImageResolution: Int = 512
 )

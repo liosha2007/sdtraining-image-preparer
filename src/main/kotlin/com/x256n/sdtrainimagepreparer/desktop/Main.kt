@@ -42,7 +42,7 @@ fun main() {
     application {
         Window(
             onCloseRequest = ::exitApplication,
-            title = "project_template",
+            title = "sdtrain-image-preparer",
             icon = painterResource("icon.ico"),
             resizable = true,
             state = WindowState(

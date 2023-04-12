@@ -16,6 +16,7 @@ data class HomeState(
     val captionContent: String = "",
     val keywordList: List<KeywordModel> = emptyList(),
     val isEditMode: Boolean = false,
+    val isProjectLoaded: Boolean = false,
     val mainImageSize: Size = Size(0f, 0f),
     val cropOffset: Offset = Offset(0f, 0f),
     val cropSize: Size = Size(512f, 512f)
@@ -30,7 +31,7 @@ data class HomeState(
 
     val statusText
         get() =
-            if (hasData) "${this[dataIndex].imageWidth} x ${this[dataIndex].imageHeight} - ${this[dataIndex].imageName}" else ""
+            if (hasData) "${this[dataIndex].imageSize.width.toInt()} x ${this[dataIndex].imageSize.height.toInt()} - ${this[dataIndex].imageName}" else ""
 
     fun addMissingKeywords(keywordsSet: List<String>, isAdded: Boolean = true): List<KeywordModel> {
         val keywordsStringSet = keywordList.map { it.keyword }

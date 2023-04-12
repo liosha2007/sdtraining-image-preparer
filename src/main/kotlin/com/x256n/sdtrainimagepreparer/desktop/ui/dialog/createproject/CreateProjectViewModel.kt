@@ -23,7 +23,7 @@ class CreateProjectViewModel(
 ) : KoinComponent {
     private val _log = LoggerFactory.getLogger("CreateProjectViewModel")
 
-    private val _state = mutableStateOf(CreateProjectState())
+    private val _state = mutableStateOf(CreateProjectState(targetImageResolution = 512))
     val state: State<CreateProjectState> = _state
 
     fun onEvent(event: CreateProjectEvent) {
@@ -57,6 +57,11 @@ class CreateProjectViewModel(
                         )
                     }
                 }
+                is CreateProjectEvent.TargetImageResolutionChanged -> {
+                    _state.value = state.value.copy(
+                        targetImageResolution = event.targetImageResolution
+                    )
+                }
                 is CreateProjectEvent.MergeExistingCaptionFiles -> {
                     _state.value = state.value.copy(
                         isMergeExistingCaptionFiles = event.value
@@ -80,6 +85,7 @@ class CreateProjectViewModel(
                                     state.value.imageDirectory!!,
                                     state.value.isOverrideExistingProject,
                                     state.value.captionExtension,
+                                    state.value.targetImageResolution,
                                     state.value.isMergeExistingCaptionFiles,
                                     state.value.isMergeExistingTxtFiles
                                 )
