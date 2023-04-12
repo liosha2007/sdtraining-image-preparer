@@ -22,6 +22,8 @@ data class CantSaveProjectException(val path: Path) : SDTrainImagePreparerExcept
 
 data class CantLoadProjectException(val path: Path) : SDTrainImagePreparerException("Can't load project: '$path'")
 
+data class CantCreateCaptionException(val path: Path) : SDTrainImagePreparerException("Can't create caption file: '$path'")
+
 data class CantSaveCaptionException(val path: Path) : SDTrainImagePreparerException("Can't save caption file: '$path'")
 
 data class CantLoadCaptionException(val path: Path) : SDTrainImagePreparerException("Can't load caption file: '$path'")

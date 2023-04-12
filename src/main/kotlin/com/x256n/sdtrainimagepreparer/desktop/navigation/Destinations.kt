@@ -16,5 +16,5 @@ sealed class Destinations : NavigationContext<Destinations> {
     object About : Destinations()
 
     override val initialKey: Destinations
-        get() = Home(action = Home.Action.LoadProject(Path.of("D:\\kotlin\\sdtrain-image-preparer\\test-project")))
+        get() = Home(action = Home.Action.Nothing)
 }

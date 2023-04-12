@@ -32,6 +32,7 @@ class CreateProjectViewModel(
             when (event) {
                 is CreateProjectEvent.CreateProjectDisplayed -> {
                     _log.info("CreateProjectDisplayed")
+                    _state.value = CreateProjectState()
                 }
                 is CreateProjectEvent.ImagesDirectoryChanged -> {
                     val newImagesDirectory = event.path.ifBlank { null }
@@ -58,23 +59,41 @@ class CreateProjectViewModel(
                     }
                 }
                 is CreateProjectEvent.TargetImageResolutionChanged -> {
-                    _state.value = state.value.copy(
-                        targetImageResolution = event.targetImageResolution
-                    )
+                    try {
+                        val targetResolution = event.value.toInt()
+                        if (targetResolution >= 32 && targetResolution <= 8 * 1024) {
+                            _state.value = state.value.copy(
+                                targetImageResolution = targetResolution
+                            )
+                        } else {
+                            _state.value = state.value.copy(
+                                errorMessage = "Target image resolution must be more than 32 and less than ${8 * 1024}"
+                            )
+                        }
+                    } catch (e: NumberFormatException) {
+                        _state.value = state.value.copy(
+                            errorMessage = "Target image resolution must be number, in pixels"
+                        )
+                    }
                 }
                 is CreateProjectEvent.MergeExistingCaptionFiles -> {
                     _state.value = state.value.copy(
-                        isMergeExistingCaptionFiles = event.value
+                        mergeExistingCaptionFiles = event.value
                     )
                 }
-                is CreateProjectEvent.MergeExistingTxtFiles -> {
+                is CreateProjectEvent.CreateCaptionsWhenAddingContentChanged -> {
                     _state.value = state.value.copy(
-                        isMergeExistingTxtFiles = event.value
+                        createCaptionsWhenAddingContent = event.value
+                    )
+                }
+                is CreateProjectEvent.TargetImageFormatChanged -> {
+                    _state.value = state.value.copy(
+                        targetImageFormat = event.value
                     )
                 }
                 is CreateProjectEvent.OverrideExistingProject -> {
                     _state.value = state.value.copy(
-                        isOverrideExistingProject = event.value
+                        overrideExistingProject = event.value
                     )
                 }
                 is CreateProjectEvent.CreateProject -> {
@@ -82,12 +101,13 @@ class CreateProjectViewModel(
                         withContext(dispatcherProvider.default) {
                             try {
                                 initializeProject(
-                                    state.value.imageDirectory!!,
-                                    state.value.isOverrideExistingProject,
-                                    state.value.captionExtension,
-                                    state.value.targetImageResolution,
-                                    state.value.isMergeExistingCaptionFiles,
-                                    state.value.isMergeExistingTxtFiles
+                                    captionExtension =state.value.captionExtension,
+                                    imageDirectory = state.value.imageDirectory!!,
+                                    mergeExistingCaptionFiles = state.value.mergeExistingCaptionFiles,
+                                    createCaptionsWhenAddingContent = state.value.createCaptionsWhenAddingContent,
+                                    targetImageResolution = state.value.targetImageResolution,
+                                    targetImageFormat = state.value.targetImageFormat,
+                                    overrideExistingProject = state.value.overrideExistingProject,
                                 )
                                 _state.value = state.value.copy(
                                     isProjectCreated = true

@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Size
 import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.common.DisplayableException
 import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
+import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainimagepreparer.desktop.model.KeywordModel
 import com.x256n.sdtrainimagepreparer.desktop.usecase.*
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.math.min
@@ -32,7 +34,9 @@ class HomeViewModel(
     private val extractCaptionKeywords: ExtractCaptionKeywordsUseCase,
     private val joinCaption: JoinCaptionUseCase,
     private val splitCaption: SplitCaptionUseCase,
-    private val cropResizeImage: CropResizeImageUseCase
+    private val cropResizeImage: CropResizeImageUseCase,
+    private val mergeExistingCaptions: MergeExistingCaptionsUseCase,
+    private val configManager: ConfigManager
 ) : KoinComponent {
     private val _log = LoggerFactory.getLogger("HomeViewModel")
 
@@ -46,6 +50,11 @@ class HomeViewModel(
                 when (event) {
                     is HomeEvent.HomeDisplayed -> {
                         _log.info("HomeDisplayed")
+                        if (configManager.openLastProjectOnStart && configManager.lastProjectPath.isNotBlank()) {
+                            val projectDirectory = Paths.get(configManager.lastProjectPath)
+                            _state.value = state.value.copy(projectDirectory = projectDirectory)
+                            loadProject(projectDirectory)
+                        }
                     }
                     is HomeEvent.OpenProject -> {
                         _state.value = state.value.copy(
@@ -220,6 +229,9 @@ class HomeViewModel(
 
                 val data = loadImageModels(projectDirectory)
                 val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
+
+                mergeExistingCaptions(projectDirectory, data)
+
                 val keywordMap = data.map { extractCaptionKeywords(it) }
                     .flatten()
                     .toSet()
@@ -233,7 +245,10 @@ class HomeViewModel(
                     keywordList = keywordMap,
                     captionContent = joinCaption(extractCaptionKeywords(data[dataIndex]).map { it.keyword })
                 )
+
                 actualizeCaptions()
+
+                configManager.lastProjectPath = projectDirectory.toAbsolutePath().normalize().toString()
             }
             _state.value = state.value.copy(isProjectLoaded = true)
         } catch (e: Exception) {

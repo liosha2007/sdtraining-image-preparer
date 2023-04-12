@@ -1,9 +1,6 @@
 package com.x256n.sdtrainimagepreparer.desktop.repository
 
-import com.x256n.sdtrainimagepreparer.desktop.common.CantLoadCaptionException
-import com.x256n.sdtrainimagepreparer.desktop.common.CantSaveCaptionException
-import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
-import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
+import com.x256n.sdtrainimagepreparer.desktop.common.*
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainimagepreparer.desktop.model.ImageModel
 import kotlinx.coroutines.runInterruptible
@@ -16,9 +13,12 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 interface CaptionRepository {
-    suspend fun save(model: ImageModel, captionContent: String)
+
+    suspend fun create(model: ImageModel, captionContent: String? = null)
+    suspend fun exist(model: ImageModel): Boolean
 
     suspend fun load(model: ImageModel): String
+    suspend fun save(model: ImageModel, captionContent: String)
 
     fun split(captionContent: String): List<String>
     fun join(keywordList: List<String>): String
@@ -30,11 +30,40 @@ class CaptionRepositoryImpl(
 ) : CaptionRepository {
     private val _log = LoggerFactory.getLogger(this::class.java)
 
+    override suspend fun create(model: ImageModel, captionContent: String?) {
+        withContext(dispatcherProvider.default) {
+            val captionPath = model.captionPath
+            try {
+                if (Files.exists(captionPath) && Files.isRegularFile(captionPath)) {
+                    _log.debug("Can't create caption file because it is already exist: {}", captionPath)
+                    throw CantCreateCaptionException(captionPath)
+                } else {
+                    runInterruptible(dispatcherProvider.io) {
+                        captionPath.writeText(captionContent ?: "", StandardCharsets.UTF_8)
+                    }
+                }
+            } catch (e: IOException) {
+                _log.error("Can't create caption file", e)
+                throw CantCreateCaptionException(captionPath)
+            }
+        }
+    }
+
+    override suspend fun exist(model: ImageModel): Boolean {
+        return withContext(dispatcherProvider.io) {
+            val captionPath = model.captionPath
+            return@withContext Files.exists(captionPath) && Files.isRegularFile(captionPath) && Files.isReadable(captionPath)
+        }
+    }
+
     override suspend fun save(model: ImageModel, captionContent: String) {
         withContext(dispatcherProvider.default) {
             val captionPath = model.captionPath
             try {
-                if (Files.exists(captionPath) && (!Files.isRegularFile(captionPath) || !Files.isWritable(captionPath))) {
+                if (Files.notExists(captionPath)
+                    || (Files.exists(captionPath) && (!Files.isRegularFile(captionPath) || !Files.isWritable(captionPath)))
+                ) {
+                    _log.error("Can't save caption file because it is not exist or is not writable")
                     throw CantSaveCaptionException(captionPath)
                 } else {
                     runInterruptible(dispatcherProvider.io) {
@@ -71,7 +100,7 @@ class CaptionRepositoryImpl(
     }
 
     override fun split(captionContent: String): List<String> {
-        return captionContent.split(configManager.captionDelimiter)
+        return captionContent.split(configManager.keywordsDelimiter)
             .map { it.trim() }
             .filter { it.isNotBlank() }
             .toSet()
@@ -79,6 +108,6 @@ class CaptionRepositoryImpl(
     }
 
     override fun join(keywordList: List<String>): String {
-        return keywordList.joinToString("${configManager.captionDelimiter} ")
+        return keywordList.joinToString("${configManager.keywordsDelimiter} ")
     }
 }

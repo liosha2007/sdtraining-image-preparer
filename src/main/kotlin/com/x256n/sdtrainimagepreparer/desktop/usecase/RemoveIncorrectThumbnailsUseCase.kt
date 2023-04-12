@@ -36,7 +36,7 @@ class RemoveIncorrectThumbnailsUseCase(
                 if (Files.exists(thumbnailsDirectory) && Files.isDirectory(thumbnailsDirectory)) {
                     Files.walkFileTree(thumbnailsDirectory, object : SimpleFileVisitor<Path>() {
                         override fun visitFile(absoluteThumbnailPath: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-                            if (absoluteThumbnailPath != null && absoluteThumbnailPath.extension == "png") {
+                            if (absoluteThumbnailPath != null && absoluteThumbnailPath.extension == configManager.thumbnailsFormat) {
                                 CoroutineScope(dispatcherProvider.default).launch {
                                     val sourceImage = projectDirectory.resolve(thumbnailsDirectory.relativize(absoluteThumbnailPath))
                                     val isSourceNotExist = runInterruptible(dispatcherProvider.io) {

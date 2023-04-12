@@ -34,7 +34,7 @@ class ThumbnailsRepositoryImpl(
         val resizedImage = originalImage.resizeImage(thumbnailsWidth, (thumbnailsWidth / ratio).toInt())
 
         runInterruptible(dispatcherProvider.io) {
-            ImageIO.write(resizedImage, "png", model.thumbnailPath.toFile())
+            ImageIO.write(resizedImage, configManager.thumbnailsFormat, model.thumbnailPath.toFile())
         }
     }
 

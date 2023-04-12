@@ -21,13 +21,15 @@ class InitializeProjectUseCase(
         captionExtension: String,
         targetImageResolution: Int,
         mergeExistingCaptionFiles: Boolean,
-        mergeExistingTxtFiles: Boolean,
+        createCaptionsWhenAddingContent: Boolean,
+        targetImageFormat: String,
     ) {
         val model = ProjectConfig(
             captionExtension = captionExtension,
             targetImageResolution = targetImageResolution,
             mergeExistingCaptionFiles = mergeExistingCaptionFiles,
-            mergeExistingTxtFiles = mergeExistingTxtFiles
+            createCaptionsWhenAddingContent = createCaptionsWhenAddingContent,
+            targetImageFormat = targetImageFormat
         )
         val projectDirectory = Path.of(imageDirectory)
         try {

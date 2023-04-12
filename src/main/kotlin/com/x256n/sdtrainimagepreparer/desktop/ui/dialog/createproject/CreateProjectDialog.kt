@@ -120,7 +120,11 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                         modifier = Modifier
                             .height(MaterialTheme.spaces.small)
                     )
-                    Row {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text(
                             modifier = Modifier
 
@@ -128,7 +132,7 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                             text = "Caption files extension: "
                         )
                         WinTextField(modifier = Modifier
-                            .weight(1f),
+                            .width(64.dp),
                             text = state.captionExtension,
                             onValueChange = {
                                 viewModel.onEvent(CreateProjectEvent.CaptionExtensionsChanged(it))
@@ -138,7 +142,11 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                         modifier = Modifier
                             .height(MaterialTheme.spaces.small)
                     )
-                    Row {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text(
                             modifier = Modifier
 
@@ -146,10 +154,32 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                             text = "Target image resolution: "
                         )
                         WinTextField(modifier = Modifier
-                            .weight(1f),
+                            .width(64.dp),
                             text = state.targetImageResolution.toString(),
                             onValueChange = {
-                                viewModel.onEvent(CreateProjectEvent.TargetImageResolutionChanged(it.toIntOrNull() ?: 512))
+                                viewModel.onEvent(CreateProjectEvent.TargetImageResolutionChanged(it))
+                            })
+                    }
+                    Spacer(
+                        modifier = Modifier
+                            .height(MaterialTheme.spaces.small)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            modifier = Modifier
+
+                                .padding(horizontal = MaterialTheme.spaces.small),
+                            text = "Target images format:",
+                        )
+                        WinTextField(modifier = Modifier
+                            .width(64.dp),
+                            text = state.targetImageFormat,
+                            onValueChange = {
+                                viewModel.onEvent(CreateProjectEvent.TargetImageFormatChanged(it))
                             })
                     }
                     Spacer(
@@ -159,7 +189,7 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                     Row {
                         WinCheckbox(
                             text = "Override (delete) existing project",
-                            isChecked = state.isOverrideExistingProject,
+                            isChecked = state.overrideExistingProject,
                             onCheckedChange = {
                                 viewModel.onEvent(CreateProjectEvent.OverrideExistingProject(it))
                             }
@@ -171,8 +201,8 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                     )
                     Row {
                         WinCheckbox(
-                            text = "Merge existing .caption files",
-                            isChecked = state.isMergeExistingCaptionFiles,
+                            text = "Merge all existing supported caption files",
+                            isChecked = state.mergeExistingCaptionFiles,
                             onCheckedChange = {
                                 viewModel.onEvent(CreateProjectEvent.MergeExistingCaptionFiles(it))
                             }
@@ -184,10 +214,10 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                     )
                     Row {
                         WinCheckbox(
-                            text = "Merge existing .txt files",
-                            isChecked = state.isMergeExistingTxtFiles,
+                            text = "Do not create empty caption files when project is opening",
+                            isChecked = state.createCaptionsWhenAddingContent,
                             onCheckedChange = {
-                                viewModel.onEvent(CreateProjectEvent.MergeExistingTxtFiles(it))
+                                viewModel.onEvent(CreateProjectEvent.CreateCaptionsWhenAddingContentChanged(it))
                             }
                         )
                     }

@@ -30,7 +30,9 @@ object ModulesInjection {
                 writeCaption = get(),
                 joinCaption = get(),
                 splitCaption = get(),
-                cropResizeImage = get()
+                cropResizeImage = get(),
+                mergeExistingCaptions = get(),
+                configManager = get()
             )
         }
         factoryOf(::AboutViewModel)
@@ -48,6 +50,7 @@ object ModulesInjection {
         factoryOf(::SplitCaptionUseCase)
         factoryOf(::JoinCaptionUseCase)
         factoryOf(::CropResizeImageUseCase)
+        factoryOf(::MergeExistingCaptionsUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)

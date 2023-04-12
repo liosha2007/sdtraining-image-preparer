@@ -35,7 +35,7 @@ class LoadImageModelsUseCase(
                 val coroutineScope = this
                 return@coroutineScope projectDirectory.walk()
                     .filter {
-                        projectConfig.supportedImageFormats.contains(it.extension)
+                        configManager.supportedImageFormats.contains(it.extension)
                                 && !it.startsWith(projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME))
                     }
                     .sortedBy { it.name }
@@ -49,8 +49,6 @@ class LoadImageModelsUseCase(
                         )
 
                         coroutineScope.launch(dispatcherProvider.default) {
-                            
-                            
 
                             val thumbnailExist = thumbnailsRepository.exist(model)
                             if (thumbnailExist) {
