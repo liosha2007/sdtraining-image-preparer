@@ -35,7 +35,7 @@ class HomeViewModel(
     private val joinCaption: JoinCaptionUseCase,
     private val splitCaption: SplitCaptionUseCase,
     private val cropResizeImage: CropResizeImageUseCase,
-    private val mergeExistingCaptions: MergeExistingCaptionsUseCase,
+    private val createNewAndMergeExistingCaptions: CreateNewAndMergeExistingCaptionsUseCase,
     private val configManager: ConfigManager
 ) : KoinComponent {
     private val _log = LoggerFactory.getLogger("HomeViewModel")
@@ -180,7 +180,9 @@ class HomeViewModel(
         _log.debug("Selected image: index = $index, name = ${state.value[index].imagePath.name}")
         // Save current keywords to caption file
         val currentKeywordList = splitCaption(state.value.captionContent)
-        writeCaption(state.value[state.value.dataIndex], currentKeywordList)
+        if (currentKeywordList.isNotEmpty()) {
+            writeCaption(state.value[state.value.dataIndex], currentKeywordList)
+        }
         // Add missing keywords to list
         _state.value = state.value.copy(
             keywordList = state.value.addMissingKeywords(currentKeywordList)
@@ -230,7 +232,7 @@ class HomeViewModel(
                 val data = loadImageModels(projectDirectory)
                 val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
 
-                mergeExistingCaptions(projectDirectory, data)
+                createNewAndMergeExistingCaptions(projectDirectory, data)
 
                 val keywordMap = data.map { extractCaptionKeywords(it) }
                     .flatten()

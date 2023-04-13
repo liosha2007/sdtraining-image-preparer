@@ -21,7 +21,7 @@ class ReadCaptionUseCase(
 
     suspend operator fun invoke(model: ImageModel): String {
         try {
-            return captionRepository.load(model)
+            return captionRepository.read(model)
         } catch (e: CantLoadCaptionException) {
             _log.error("Can't load caption file", e)
             throw DisplayableException("Caption file content can't be read")

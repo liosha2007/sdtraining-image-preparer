@@ -23,7 +23,7 @@ class ExtractCaptionKeywordsUseCase(
     suspend operator fun invoke(model: ImageModel): List<KeywordModel> {
         try {
             val keywordMap = mutableMapOf<String, Int>()
-            val captionContent = captionRepository.load(model)
+            val captionContent = captionRepository.read(model)
             captionRepository.split(captionContent)
                 .forEach { captionKeyword ->
                     keywordMap[captionKeyword] = keywordMap.getOrDefault(captionKeyword, 0) + 1

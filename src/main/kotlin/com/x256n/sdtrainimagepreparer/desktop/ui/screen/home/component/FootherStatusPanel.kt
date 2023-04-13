@@ -38,22 +38,35 @@ fun FootherStatusPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                 )
             }
         }
-        Text(
+        Column(
             modifier = Modifier
+                .horizontalScroll(rememberScrollState())
                 .weight(0.3f)
-                .padding(horizontal = 3.dp, vertical = 1.dp),
-            fontSize = MaterialTheme.typography.body2.fontSize,
-            text = state.statusText,
-            color = Color.Black,
-        )
-        Text(
+                .padding(horizontal = 3.dp, vertical = 1.dp)
+        ) {
+            Text(
+                modifier = Modifier
+                    .wrapContentWidth(),
+                fontSize = MaterialTheme.typography.body2.fontSize,
+                text = state.statusText,
+                color = Color.Black,
+                maxLines = 1
+            )
+        }
+        Column(
             modifier = Modifier
+                .horizontalScroll(rememberScrollState())
                 .weight(0.7f)
-                .horizontalScroll(state = rememberScrollState())
-                .padding(horizontal = MaterialTheme.spaces.medium, vertical = 1.dp),
-            fontSize = MaterialTheme.typography.body2.fontSize,
-            text = if (state.errorMessage == null) "" else "Error: " + state.errorMessage,
-            color = Color.Red
-        )
+                .padding(horizontal = MaterialTheme.spaces.medium, vertical = 1.dp)
+        ) {
+            Text(
+                modifier = Modifier
+                    .wrapContentWidth(),
+                fontSize = MaterialTheme.typography.body2.fontSize,
+                text = if (state.errorMessage == null) "" else "Error: " + state.errorMessage,
+                color = Color.Red,
+                maxLines = 1
+            )
+        }
     }
 }

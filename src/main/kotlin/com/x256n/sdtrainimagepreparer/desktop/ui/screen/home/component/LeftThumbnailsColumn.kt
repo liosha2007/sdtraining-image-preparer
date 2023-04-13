@@ -81,7 +81,7 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                     )
                     Text(
                         modifier = Modifier,
-                        text = "${item.imageSize.width} x ${item.imageSize.height}",
+                        text = "${item.imageSize.width.toInt()} x ${item.imageSize.height.toInt()}",
                         fontSize = 10.sp,
                         color = textColor
                     )

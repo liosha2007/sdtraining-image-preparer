@@ -15,7 +15,7 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readText
 
 
-class MergeExistingCaptionsUseCase(
+class CreateNewAndMergeExistingCaptionsUseCase(
     private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
     private val configManager: ConfigManager,
     private val projectConfigRepository: ProjectConfigRepository,
@@ -26,6 +26,14 @@ class MergeExistingCaptionsUseCase(
     suspend operator fun invoke(projectDirectory: Path, modelList: List<ImageModel>) {
         val supportedCaptionExtensions = configManager.supportedCaptionExtensions
         val projectConfig = projectConfigRepository.load(projectDirectory)
+
+        if (!projectConfig.createCaptionsWhenAddingContent) {
+            modelList.forEach { model ->
+                if (!captionRepository.exist(model)) {
+                    captionRepository.write(model)
+                }
+            }
+        }
 
         if (projectConfig.mergeExistingCaptionFiles) {
             modelList.forEach { model ->
@@ -43,12 +51,10 @@ class MergeExistingCaptionsUseCase(
                                 val otherCaptionContent = potentialCaptionPath.readText(StandardCharsets.UTF_8)
                                 val otherCaptionKeywords = captionRepository.split(otherCaptionContent)
 
-                                if (!captionRepository.exist(model)) {
-                                    _log.debug("Creating main caption file: ${model.captionPath}")
-                                    captionRepository.create(model)
-                                }
+                                val captionContent = if (captionRepository.exist(model)) {
+                                    captionRepository.read(model)
+                                } else ""
 
-                                val captionContent = captionRepository.load(model)
                                 val captionKeywords = captionRepository.split(captionContent)
                                 val resultKeywords = mutableSetOf<String>().apply {
                                     addAll(captionKeywords)
@@ -57,7 +63,7 @@ class MergeExistingCaptionsUseCase(
 
                                 val resultContent = captionRepository.join(resultKeywords.toList())
                                 _log.debug("Saving data to caption file, count of merged keywords: ${resultKeywords.size}")
-                                captionRepository.save(model, resultContent)
+                                captionRepository.write(model, resultContent)
 
                                 _log.debug("Deleting merged caption file: $potentialCaptionPath")
                                 withContext(dispatcherProvider.io) {
