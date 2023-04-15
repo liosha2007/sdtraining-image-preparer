@@ -2,30 +2,21 @@
 
 package com.x256n.sdtrainimagepreparer.desktop.ui.screen.home
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import com.x256n.sdtrainimagepreparer.desktop.common.DispatcherProvider
+import com.x256n.sdtrainimagepreparer.desktop.common.BaseViewModel
 import com.x256n.sdtrainimagepreparer.desktop.common.DisplayableException
-import com.x256n.sdtrainimagepreparer.desktop.common.StandardDispatcherProvider
 import com.x256n.sdtrainimagepreparer.desktop.manager.ConfigManager
-import com.x256n.sdtrainimagepreparer.desktop.model.KeywordModel
 import com.x256n.sdtrainimagepreparer.desktop.usecase.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
-import org.slf4j.LoggerFactory
-import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.math.min
+import kotlin.system.exitProcess
 
 @ExperimentalPathApi
 class HomeViewModel(
-    private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
     private val checkProject: CheckProjectUseCase,
     private val loadImageModels: LoadImageModelsUseCase,
     private val readCaption: ReadCaptionUseCase,
@@ -37,95 +28,184 @@ class HomeViewModel(
     private val cropResizeImage: CropResizeImageUseCase,
     private val createNewAndMergeExistingCaptions: CreateNewAndMergeExistingCaptionsUseCase,
     private val configManager: ConfigManager
-) : KoinComponent {
-    private val _log = LoggerFactory.getLogger("HomeViewModel")
+) : BaseViewModel<HomeState>(emptyState = HomeState()), KoinComponent {
 
-    private val _state = mutableStateOf(HomeState())
-    val state: State<HomeState> = _state
+    // region Application events
 
-    fun onEvent(event: HomeEvent) {
-        CoroutineScope(dispatcherProvider.main).launch {
-            _state.value = state.value.copy(isLoading = true, errorMessage = null)
-            try {
-                when (event) {
-                    is HomeEvent.HomeDisplayed -> {
-                        _log.info("HomeDisplayed")
-                        if (configManager.openLastProjectOnStart && configManager.lastProjectPath.isNotBlank()) {
-                            val projectDirectory = Paths.get(configManager.lastProjectPath)
-                            _state.value = state.value.copy(projectDirectory = projectDirectory)
-                            loadProject(projectDirectory)
-                        }
-                    }
-                    is HomeEvent.OpenProject -> {
-                        _state.value = state.value.copy(
-                            isOpenProject = true
-                        )
-                    }
-                    is HomeEvent.LoadProject -> {
-                        loadProject(event.projectDirectory)
-                    }
-                    is HomeEvent.ImageSelected -> {
-                        imageSelected(event.index)
-                    }
-                    is HomeEvent.KeywordSelected -> {
-                        keywordSelected(event.keywordModel)
-                    }
-                    is HomeEvent.CaptionContentChanged -> {
-                        captionContentChanged(event.value)
-                    }
-                    is HomeEvent.ShowNextImage -> {
-                        imageSelected(if (state.value.dataIndex == state.value.data.lastIndex) 0 else state.value.dataIndex + 1)
-                    }
-                    is HomeEvent.ShowPrevImage -> {
-                        imageSelected(if (state.value.dataIndex == 0) state.value.data.lastIndex else state.value.dataIndex - 1)
-                    }
-                    is HomeEvent.EditModeClicked -> {
-                        editMode(event.enable)
-                    }
-                    is HomeEvent.CropRectChanged -> {
-                        cropRectChanged(event.offset, event.size)
-                    }
-                    is HomeEvent.MainImageScaleChanged -> {
-                        mainImageScale(event.imageSize)
-                    }
-                    is HomeEvent.ChangeAreaToSize -> {
-                        changeAreaToSize(event.targetSize)
-                    }
-                    is HomeEvent.CropApplyClicked -> {
-                        cropApply()
-                    }
-
-                    else -> {
-                        TODO("Not implemented: $event")
-                    }
-                }
-            } catch (e: DisplayableException) {
-                _state.value = state.value.copy(errorMessage = e.message)
-            } catch (e: Exception) {
-                _log.error("Unexpected exception!", e)
-                _state.value = state.value.copy(errorMessage = "Unexpected exception happened: ${e.message}")
-            } finally {
-                _state.value = state.value.copy(isLoading = false)
-            }
+    private fun initHomeScreen() {
+        _log.info("HomeDisplayed")
+        if (configManager.openLastProjectOnStart && configManager.lastProjectPath.isNotBlank()) {
+            val projectDirectory = Paths.get(configManager.lastProjectPath)
+            _state.value = state.value.copy(projectDirectory = projectDirectory)
+            sendEvent(HomeEvent.LoadProject(projectDirectory))
         }
     }
 
-    private fun mainImageScale(imageSize: Size) {
-        _state.value = state.value.copy(mainImageSize = imageSize)
+    private fun exitApplication(event: HomeEvent.Exit) {
+        if (event.isConfirmed) {
+            exitProcess(0)
+        }
     }
 
-    private fun editMode(enable: Boolean) {
+    // endregion
+
+    // region Project events
+
+    private suspend fun loadProject(event: HomeEvent.LoadProject) {
+        state.value.projectDirectory?.let {
+            // state.value.projectDirectory == null means there is no opened projects
+            sendEvent(HomeEvent.CloseProject)
+        }
+
+        val projectDirectory = event.projectDirectory
+
+        _state.value = HomeState(
+            isShowChooseProjectDirectoryDialog = false
+        )
+        checkProject(projectDirectory)
+
+        removeIncorrectThumbnails(projectDirectory)
+
+        val data = loadImageModels(projectDirectory)
+        val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
+
+        createNewAndMergeExistingCaptions(projectDirectory, data)
+
+        val keywordMap = data.map { extractCaptionKeywords(it) }
+            .flatten()
+            .toSet()
+            .toList()
+
+        val currentCaptionKeywords = extractCaptionKeywords(data[dataIndex])
+
         _state.value = state.value.copy(
-            isEditMode = enable,
-            cropOffset = if (enable) state.value.cropOffset else Offset(0f, 0f),
-            cropSize = if (enable) state.value.cropSize else Size(
+            projectDirectory = projectDirectory,
+            data = data,
+            dataIndex = dataIndex,
+            keywordList = keywordMap.map {
+                it.copy(isAdded = currentCaptionKeywords.contains(it))
+            },
+            captionContent = joinCaption(currentCaptionKeywords.map { it.keyword })
+        )
+
+        configManager.lastProjectPath = projectDirectory.toAbsolutePath().normalize().toString()
+    }
+
+    private fun showOpenProjectDialog() {
+        _state.value = state.value.copy(
+            isShowChooseProjectDirectoryDialog = true
+        )
+    }
+
+    private fun closeProject() {
+        _state.value = HomeState()
+    }
+
+    private fun dropProject() {
+        TODO("Not yet implemented")
+    }
+
+    // endregion
+
+    // region Image events
+
+    private fun deleteImage() {
+        TODO("Not yet implemented")
+    }
+
+    private fun changeImageSizeOnScreen(event: HomeEvent.ImageSizeChanged) {
+        _state.value = state.value.copy(mainImageSize = event.imageSize)
+    }
+
+    private suspend fun changeSelectedImage(event: HomeEvent.ImageSelected) {
+        val index = event.index
+        _log.debug("Selected image: index = $index, name = ${state.value.selectedImageModel.imagePath.name}")
+        // Save current keywords to caption file
+        val currentKeywordList = splitCaption(state.value.captionContent)
+        if (currentKeywordList.isNotEmpty()) {
+            writeCaption(state.value[state.value.dataIndex], currentKeywordList)
+        }
+        // Add missing keywords to list
+        _state.value = state.value.copy(
+            keywordList = state.value.addMissingKeywords(currentKeywordList)
+        )
+
+        val currentCaptionKeywords = extractCaptionKeywords(state.value.selectedImageModel)
+
+        // Change selected image
+        _state.value = state.value.copy(
+            dataIndex = index,
+            captionContent = readCaption(state.value.selectedImageModel),
+            keywordList = currentCaptionKeywords.map {
+                it.copy(isAdded = currentCaptionKeywords.contains(it))
+            }
+        )
+    }
+
+    private fun showNextImage() {
+        sendEvent(HomeEvent.ImageSelected(if (state.value.dataIndex == state.value.data.lastIndex) 0 else state.value.dataIndex + 1))
+    }
+
+    private fun showPrevImage() {
+        sendEvent(HomeEvent.ImageSelected(if (state.value.dataIndex == 0) state.value.data.lastIndex else state.value.dataIndex - 1))
+    }
+
+    // endregion
+
+    // region Captions events
+
+    private fun createAllCaptions() {
+        TODO("Not yet implemented")
+    }
+
+    private fun deleteAllCaptions() {
+        TODO("Not yet implemented")
+    }
+
+    private fun changeCaptionContent(event: HomeEvent.CaptionContentChanged) {
+        _state.value = state.value.copy(
+            captionContent = event.value
+        )
+    }
+
+    private suspend fun selectKeyword(event: HomeEvent.KeywordSelected) {
+        _log.debug("Clicked keyword: ${event.keywordModel.keyword}")
+
+        val activeModel = state.value[state.value.dataIndex]
+        val captionList = extractCaptionKeywords(activeModel).toMutableList()
+
+        if (event.keywordModel.isAdded) {
+            captionList.removeIf { it.keyword == event.keywordModel.keyword }
+        } else {
+            captionList.add(event.keywordModel.copy(isAdded = true))
+        }
+        val keywordSet = captionList.map { it.keyword }
+        writeCaption(activeModel, keywordSet)
+
+        _state.value = state.value.copy(
+            keywordList = state.value.keywordList.map {
+                it.copy(isAdded = keywordSet.contains(it.keyword))
+            },
+            captionContent = joinCaption(keywordSet)
+        )
+    }
+
+    // endregion
+
+    // region Image tools events
+
+    private fun toggleEditMode(event: HomeEvent.EditModeClicked) {
+        _state.value = state.value.copy(
+            isEditMode = event.enable,
+            cropOffset = if (event.enable) state.value.cropOffset else Offset(0f, 0f),
+            cropSize = if (event.enable) state.value.cropSize else Size(
                 min(512f, state.value.mainImageSize.width),
                 min(512f, state.value.mainImageSize.height)
             )
         )
     }
 
-    private suspend fun cropApply() {
+    private suspend fun cropResizeImage() {
         _log.debug("cropRectChanged: offset = ${state.value.cropOffset}, size = ${state.value.cropSize}")
         val imageModel = state.value.data[state.value.dataIndex]
         val newImageModel = cropResizeImage(imageModel, state.value.cropOffset, state.value.cropSize)
@@ -135,11 +215,11 @@ class HomeViewModel(
         )
     }
 
-    private fun changeAreaToSize(targetSize: Float) {
+    private fun changeAreaSize(event: HomeEvent.ChangeAreaToSize) {
         var x = state.value.cropOffset.x
         var y = state.value.cropOffset.y
-        var width = targetSize
-        var height = targetSize
+        var width = event.targetSize
+        var height = event.targetSize
         val imageWidth = state.value.mainImageSize.width
         val imageHeight = state.value.mainImageSize.height
 
@@ -163,111 +243,119 @@ class HomeViewModel(
         )
     }
 
-    private fun cropRectChanged(offset: Offset, size: Size) {
+    private fun changeCropRectangle(event: HomeEvent.CropRectChanged) {
         _state.value = state.value.copy(
-            cropOffset = offset,
-            cropSize = size
+            cropOffset = event.offset,
+            cropSize = event.size
         )
     }
 
-    private fun captionContentChanged(value: String) {
-        _state.value = state.value.copy(
-            captionContent = value
-        )
-    }
-
-    private suspend fun imageSelected(index: Int) {
-        _log.debug("Selected image: index = $index, name = ${state.value[index].imagePath.name}")
-        // Save current keywords to caption file
-        val currentKeywordList = splitCaption(state.value.captionContent)
-        if (currentKeywordList.isNotEmpty()) {
-            writeCaption(state.value[state.value.dataIndex], currentKeywordList)
-        }
-        // Add missing keywords to list
-        _state.value = state.value.copy(
-            keywordList = state.value.addMissingKeywords(currentKeywordList)
-        )
-
-        // Change selected image
-        _state.value = state.value.copy(
-            dataIndex = index,
-            captionContent = readCaption(state.value[index])
-        )
-        actualizeCaptions()
-    }
-
-    private suspend fun keywordSelected(keywordModel: KeywordModel) {
-        _log.debug("Clicked keyword: ${keywordModel.keyword}")
-
-        val activeModel = state.value[state.value.dataIndex]
-        val captionList = extractCaptionKeywords(activeModel).toMutableList()
-
-        if (keywordModel.isAdded) {
-            captionList.removeIf { it.keyword == keywordModel.keyword }
-        } else {
-            captionList.add(keywordModel.copy(isAdded = true))
-        }
-        val keywordSet = captionList.map { it.keyword }
-        writeCaption(activeModel, keywordSet)
-
-        _state.value = state.value.copy(
-            keywordList = state.value.keywordList.map {
-                it.copy(isAdded = keywordSet.contains(it.keyword))
-            },
-            captionContent = joinCaption(keywordSet)
-        )
-    }
-
-    private suspend fun loadProject(projectDirectory: Path) {
-        try {
-            withContext(dispatcherProvider.default) {
-                _state.value = HomeState(
-                    projectDirectory = null,
-                    isOpenProject = false
-                )
-                checkProject(projectDirectory)
-
-                removeIncorrectThumbnails(projectDirectory)
-
-                val data = loadImageModels(projectDirectory)
-                val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
-
-                createNewAndMergeExistingCaptions(projectDirectory, data)
-
-                val keywordMap = data.map { extractCaptionKeywords(it) }
-                    .flatten()
-                    .toSet()
-                    .toList()
+    // endregion
 
 
-                _state.value = state.value.copy(
-                    projectDirectory = projectDirectory,
-                    data = data,
-                    dataIndex = dataIndex,
-                    keywordList = keywordMap,
-                    captionContent = joinCaption(extractCaptionKeywords(data[dataIndex]).map { it.keyword })
-                )
-
-                actualizeCaptions()
-
-                configManager.lastProjectPath = projectDirectory.toAbsolutePath().normalize().toString()
+    /**
+     * This method was made this way just to make 'when' smaller so that IDE will not show warning about too deprecated method
+     */
+    override suspend fun onEvent(event: HomeEvent) {
+        when (event) {
+            // region Application events
+            is HomeEvent.HomeDisplayed, is HomeEvent.Exit -> {
+                onApplicationEvent(event)
             }
-            _state.value = state.value.copy(isProjectLoaded = true)
-        } catch (e: Exception) {
-            _state.value = state.value.copy(isProjectLoaded = false)
-            throw e
+            // endregion
+
+            // region Project events
+            is HomeEvent.LoadProject, is HomeEvent.OpenProject, is HomeEvent.CloseProject, is HomeEvent.DropProject -> {
+                onProjectEvent(event)
+            }
+            // endregion
+
+            // region Image events
+            is HomeEvent.DeleteImage, is HomeEvent.ImageSizeChanged, is HomeEvent.ImageSelected, is HomeEvent.ShowNextImage, is HomeEvent.ShowPrevImage -> {
+                onImageEvent(event)
+            }
+            // endregion
+
+            // region Captions events
+            is HomeEvent.CreateAllCaptions, is HomeEvent.DeleteAllCaptions, is HomeEvent.CaptionContentChanged, is HomeEvent.KeywordSelected -> {
+                onCaptionsEvent(event)
+            }
+            // endregion
+
+            // region Toolbar events
+            is HomeEvent.EditModeClicked, is HomeEvent.CropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.CropRectChanged -> {
+                onToolbarEvent(event)
+            }
+            // endregion
+            else -> {
+                TODO("Not implemented: $event")
+            }
         }
     }
 
-    private suspend fun actualizeCaptions() {
-        if (state.value.hasData) {
-            val currentModel = state.value[state.value.dataIndex]
-            val captionKeywordList = extractCaptionKeywords(currentModel).map { it.keyword }
-            _state.value = state.value.copy(
-                keywordList = state.value.keywordList.map {
-                    it.copy(isAdded = captionKeywordList.contains(it.keyword))
-                }
-            )
+    private fun onApplicationEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.HomeDisplayed -> initHomeScreen()
+            is HomeEvent.Exit -> exitApplication(event)
+            else -> throw DisplayableException("Unexpected application state: c92a533424d4($event)")
         }
+    }
+
+    private suspend fun onProjectEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.LoadProject -> loadProject(event)
+            is HomeEvent.OpenProject -> showOpenProjectDialog()
+            is HomeEvent.CloseProject -> closeProject()
+            is HomeEvent.DropProject -> dropProject()
+            else -> throw DisplayableException("Unexpected application state: 24cf91708f36($event)")
+        }
+    }
+
+    private suspend fun onImageEvent(event: HomeEvent) {
+
+        when (event) {
+            is HomeEvent.DeleteImage -> deleteImage()
+            is HomeEvent.ImageSizeChanged -> changeImageSizeOnScreen(event)
+            is HomeEvent.ImageSelected -> changeSelectedImage(event)
+            is HomeEvent.ShowNextImage -> showNextImage()
+            is HomeEvent.ShowPrevImage -> showPrevImage()
+            else -> throw DisplayableException("Unexpected application state: c92a533424d4($event)")
+        }
+    }
+
+    private suspend fun onCaptionsEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.CreateAllCaptions -> createAllCaptions()
+            is HomeEvent.DeleteAllCaptions -> deleteAllCaptions()
+            is HomeEvent.CaptionContentChanged -> changeCaptionContent(event)
+            is HomeEvent.KeywordSelected -> selectKeyword(event)
+            else -> throw DisplayableException("Unexpected application state: 44f67cf5f537($event)")
+        }
+    }
+
+    private suspend fun onToolbarEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.EditModeClicked -> toggleEditMode(event)
+            is HomeEvent.CropApplyClicked -> cropResizeImage()
+            is HomeEvent.ChangeAreaToSize -> changeAreaSize(event)
+            is HomeEvent.CropRectChanged -> changeCropRectangle(event)
+            else -> throw DisplayableException("Unexpected application state: 7c0e742c3764($event)")
+        }
+    }
+
+    override fun showProgressBar() {
+        _state.value = state.value.copy(isLoading = true)
+    }
+
+    override fun hideProgressBar() {
+        _state.value = state.value.copy(isLoading = false)
+    }
+
+    override fun showError(message: String) {
+        _state.value = state.value.copy(errorMessage = message)
+    }
+
+    override fun hideError() {
+        _state.value = state.value.copy(errorMessage = null)
     }
 }

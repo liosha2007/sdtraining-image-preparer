@@ -54,17 +54,17 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
 
     rememberSaveable(dest) {
         if (dest is Destinations.Home && dest.action is Destinations.Home.Action.LoadProject) {
-            viewModel.onEvent(HomeEvent.LoadProject(dest.action.projectDirectory))
+            viewModel.sendEvent(HomeEvent.LoadProject(dest.action.projectDirectory))
         }
     }
 
     LaunchedEffect(Unit) {
-        viewModel.onEvent(HomeEvent.HomeDisplayed)
+        viewModel.sendEvent(HomeEvent.HomeDisplayed)
     }
 
-    DirectoryPicker(state.isOpenProject) { projectDirectory ->
+    DirectoryPicker(state.isShowChooseProjectDirectoryDialog) { projectDirectory ->
         projectDirectory?.let {
-            viewModel.onEvent(HomeEvent.LoadProject(Path.of(it)))
+            viewModel.sendEvent(HomeEvent.LoadProject(Path.of(it)))
         }
     }
 
@@ -83,9 +83,9 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                 return@onKeyEvent if (it.key == Key.Tab) {
                     log.debug("Key event: ${it.key}, shift: ${it.isShiftPressed}")
                     if (it.isShiftPressed) {
-                        viewModel.onEvent(HomeEvent.ShowPrevImage)
+                        viewModel.sendEvent(HomeEvent.ShowPrevImage)
                     } else {
-                        viewModel.onEvent(HomeEvent.ShowNextImage)
+                        viewModel.sendEvent(HomeEvent.ShowNextImage)
                     }
                     coroutineScope.launch {
                         lazyDataState.animateScrollToItem(state.dataIndex)

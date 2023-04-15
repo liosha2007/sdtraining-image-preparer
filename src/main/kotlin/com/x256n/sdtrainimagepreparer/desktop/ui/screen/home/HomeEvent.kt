@@ -6,22 +6,37 @@ import com.x256n.sdtrainimagepreparer.desktop.model.KeywordModel
 import java.nio.file.Path
 
 sealed class HomeEvent {
+    // region Application events
     object HomeDisplayed : HomeEvent()
+    data class Exit(val isConfirmed: Boolean = false) : HomeEvent()
+    // endregion
+
+    // region Project events
     data class LoadProject(val projectDirectory: Path) : HomeEvent()
     object OpenProject : HomeEvent()
-    data class ImageSelected(val index: Int) : HomeEvent()
+    object CloseProject : HomeEvent()
+    object DropProject : HomeEvent()
+    // endregion
 
+    // region Image events
+    object DeleteImage : HomeEvent()
+    data class ImageSizeChanged(val imageSize: Size) : HomeEvent()
+    data class ImageSelected(val index: Int) : HomeEvent()
     object ShowNextImage : HomeEvent()
     object ShowPrevImage : HomeEvent()
+    // endregion
 
-    data class KeywordSelected(val keywordModel: KeywordModel) : HomeEvent()
-
+    // region Captions events
+    object CreateAllCaptions : HomeEvent()
+    object DeleteAllCaptions : HomeEvent()
     data class CaptionContentChanged(val value: String) : HomeEvent()
+    data class KeywordSelected(val keywordModel: KeywordModel) : HomeEvent()
+    // endregion
 
+    // region Image tools events
     data class EditModeClicked(val enable: Boolean) : HomeEvent()
     object CropApplyClicked : HomeEvent()
     data class ChangeAreaToSize(val targetSize: Float) : HomeEvent()
-
     data class CropRectChanged(val offset: Offset, val size: Size) : HomeEvent()
-    data class MainImageScaleChanged(val imageSize: Size) : HomeEvent()
+    // endregion
 }

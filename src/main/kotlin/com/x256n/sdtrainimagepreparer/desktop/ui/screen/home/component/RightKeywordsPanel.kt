@@ -42,7 +42,7 @@ fun RightKeywordsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                     modifier = modifier
                         .fillMaxWidth()
                         .clickable {
-                            viewModel.onEvent(HomeEvent.KeywordSelected(item))
+                            viewModel.sendEvent(HomeEvent.KeywordSelected(item))
                         },
                 ) {
                     Text(

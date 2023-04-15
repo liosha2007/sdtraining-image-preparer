@@ -1,3 +1,4 @@
+wix311/
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

@@ -12,6 +12,5 @@
 * Hotkeys for cancelling and applying cropping
 * Button to close and drop project files
 * Button to create/drop all caption files
-* .0 in image size under thumbnails
 * Button to delete source image
 * Square cropping area

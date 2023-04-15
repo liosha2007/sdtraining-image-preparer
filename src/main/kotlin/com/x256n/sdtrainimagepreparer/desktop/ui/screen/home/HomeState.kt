@@ -10,13 +10,12 @@ data class HomeState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val projectDirectory: Path? = null,
-    val isOpenProject: Boolean = false,
+    val isShowChooseProjectDirectoryDialog: Boolean = false,
     val data: List<ImageModel> = emptyList(),
     val dataIndex: Int = -1,
     val captionContent: String = "",
     val keywordList: List<KeywordModel> = emptyList(),
     val isEditMode: Boolean = false,
-    val isProjectLoaded: Boolean = false,
     val mainImageSize: Size = Size(0f, 0f),
     val cropOffset: Offset = Offset(0f, 0f),
     val cropSize: Size = Size(512f, 512f)
@@ -27,11 +26,15 @@ data class HomeState(
 
     val hasData get() = data.isNotEmpty()
 
+    val selectedImageModel get() = data[dataIndex]
+
     val hasKeywords get() = keywordList.isNotEmpty()
 
     val statusText
         get() =
             if (hasData) "${this[dataIndex].imageSize.width.toInt()} x ${this[dataIndex].imageSize.height.toInt()} - ${this[dataIndex].imageName}" else ""
+
+    val isProjectLoaded get() = projectDirectory != null
 
     fun addMissingKeywords(keywordsSet: List<String>, isAdded: Boolean = true): List<KeywordModel> {
         val keywordsStringSet = keywordList.map { it.keyword }

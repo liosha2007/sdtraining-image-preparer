@@ -63,7 +63,7 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                             .fillMaxWidth()
                             .height((thumbnailSize.width / 1.7).dp)
                             .clickable {
-                                viewModel.onEvent(HomeEvent.ImageSelected(index))
+                                viewModel.sendEvent(HomeEvent.ImageSelected(index))
                             },
                         load = {
                             pathPainter(item.thumbnailPath)

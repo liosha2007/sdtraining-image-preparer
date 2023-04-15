@@ -26,30 +26,53 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
             "Open project...",
             mnemonic = 'O',
             onClick = {
-                viewModel.onEvent(HomeEvent.OpenProject)
+                viewModel.sendEvent(HomeEvent.OpenProject)
             }
         )
-        CheckboxItem(
-            "Advanced settings",
-            mnemonic = 'A',
-            checked = true,
-            onCheckedChange = { /*isAdvancedSettings = !isAdvancedSettings*/ }
+        Item(
+            "Close project",
+            mnemonic = 'C',
+            onClick = {
+                viewModel.sendEvent(HomeEvent.CloseProject)
+            }
         )
-        Menu("Theme") {
-            Item(
-                "Item 1",
-                onClick = { println("Item 1") }
-            )
-            Item(
-                "Item 2",
-                onClick = { println("Item 2") }
-            )
-        }
+        Item(
+            "Drop project...",
+            mnemonic = 'D',
+            onClick = {
+                viewModel.sendEvent(HomeEvent.DropProject)
+            }
+        )
         Item(
             "Exit",
             mnemonic = 'Q',
-            onClick = { println("Exit") }
+            onClick = {
+                viewModel.sendEvent(HomeEvent.Exit())
+            }
         )
+    }
+
+    Menu("Actions") {
+        Item(
+            "Delete image...",
+            onClick = {
+                viewModel.sendEvent(HomeEvent.DeleteImage)
+            }
+        )
+        Menu("Caption files") {
+            Item(
+                "Create all...",
+                onClick = {
+                    viewModel.sendEvent(HomeEvent.CreateAllCaptions)
+                }
+            )
+            Item(
+                "Delete all...",
+                onClick = {
+                    viewModel.sendEvent(HomeEvent.DeleteAllCaptions)
+                }
+            )
+        }
     }
 
     Menu("Options") {

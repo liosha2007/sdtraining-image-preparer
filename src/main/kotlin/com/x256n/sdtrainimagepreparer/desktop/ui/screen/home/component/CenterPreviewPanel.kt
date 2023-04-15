@@ -94,8 +94,8 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                                 }
                                 previewSize = IntSize(imageWidth, imageHeight)
                                 mainImageScale = image.width.toFloat() / imageWidth
-                                viewModel.onEvent(
-                                    HomeEvent.MainImageScaleChanged(
+                                viewModel.sendEvent(
+                                    HomeEvent.ImageSizeChanged(
                                         imageSize = Size(
                                             image.width.toFloat(),
                                             image.height.toFloat()
@@ -210,7 +210,7 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                                                     )
                                                 } else newAreaRectangle
 
-                                            viewModel.onEvent(
+                                            viewModel.sendEvent(
                                                 HomeEvent.CropRectChanged(
                                                     offset = Offset(
                                                         newAreaRectangle.left * mainImageScale,

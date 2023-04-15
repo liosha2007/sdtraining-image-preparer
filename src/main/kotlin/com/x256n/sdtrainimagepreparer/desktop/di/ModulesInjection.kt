@@ -21,7 +21,6 @@ object ModulesInjection {
     val viewmodelBeans = module {
         single {
             HomeViewModel(
-                dispatcherProvider = get(),
                 checkProject = get(),
                 loadImageModels = get(),
                 readCaption = get(),

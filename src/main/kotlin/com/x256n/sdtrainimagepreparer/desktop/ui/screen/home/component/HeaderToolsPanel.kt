@@ -31,7 +31,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.onEvent(HomeEvent.CropApplyClicked)
+                        viewModel.sendEvent(HomeEvent.CropApplyClicked)
                     }
                 ) {
                     Text(
@@ -42,7 +42,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.onEvent(HomeEvent.ChangeAreaToSize(512f))
+                        viewModel.sendEvent(HomeEvent.ChangeAreaToSize(512f))
                     }
                 ) {
                     Text(
@@ -53,7 +53,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.onEvent(HomeEvent.ChangeAreaToSize(768f))
+                        viewModel.sendEvent(HomeEvent.ChangeAreaToSize(768f))
                     }
                 ) {
                     Text(
@@ -64,7 +64,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.onEvent(HomeEvent.EditModeClicked(false))
+                        viewModel.sendEvent(HomeEvent.EditModeClicked(false))
                     }
                 ) {
                     Text(
@@ -76,7 +76,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.onEvent(HomeEvent.EditModeClicked(true))
+                        viewModel.sendEvent(HomeEvent.EditModeClicked(true))
                     }
                 ) {
                     Text(

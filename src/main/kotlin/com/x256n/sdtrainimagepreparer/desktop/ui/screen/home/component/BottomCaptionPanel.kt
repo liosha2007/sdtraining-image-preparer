@@ -23,7 +23,7 @@ fun BottomCaptionPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                 .fillMaxSize(),
             text = state.captionContent,
             onValueChange = {
-                viewModel.onEvent(HomeEvent.CaptionContentChanged(it))
+                viewModel.sendEvent(HomeEvent.CaptionContentChanged(it))
             }
         )
     }
