@@ -30,7 +30,7 @@ class CreateProjectViewModel(
         CoroutineScope(Dispatchers.Main).launch {
             _state.value = state.value.copy(isLoading = true, errorMessage = null)
             when (event) {
-                is CreateProjectEvent.CreateProjectDisplayed -> {
+                is CreateProjectEvent.CreateProjectDialogDisplayed -> {
                     _log.info("CreateProjectDisplayed")
                     _state.value = CreateProjectState()
                 }

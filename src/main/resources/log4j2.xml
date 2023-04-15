@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration status="DEBUG" monitorInterval="30">
+<configuration status="DEBUG" monitorInterval="30" strict="true" name="XMLConfigTest">
+    <properties>
+        <property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%t] %highlight{%c{1.}.%M(%L)}: %msg%n</property>
+    </properties>
     <appenders>
-        <console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%t] %highlight{%c{1.}.%M(%L)}: %msg%n"/>
-        </console>
-        <RollingFile name="RollingFile" fileName="logs/output.log" filePattern="logs/$${date:yyyy-MM}/output-%d{MM-dd-yyyy}-%i.log.gz">
-            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
+
+        <Appender type="Console" name="ConsoleAppender" target="SYSTEM_OUT">
+            <Layout type="PatternLayout" pattern="${LOG_PATTERN}"/>
+            <LevelRangeFilter minLevel="TRACE" maxLevel="TRACE" onMatch="DENY" onMismatch="ACCEPT"/>
+        </Appender>
+
+        <RollingFile name="RollingFileAppender" fileName="logs/output.log"
+                     filePattern="logs/$${date:yyyy-MM}/output-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
             <SizeBasedTriggeringPolicy size="5 MB"/>
         </RollingFile>
+
     </appenders>
     <loggers>
-        <logger nane="com.x256n.sdtrainimagepreparer">
-            <level value="DEBUG"/>
-            <appender-ref ref="Console"/>
+
+        <logger name="com.x256n.sdtrainimagepreparer" level="TRACE">
+            <appender-ref ref="RollingFileAppender"/>
+            <appender-ref ref="ConsoleAppender"/>
         </logger>
 
         <root level="INFO">
-            <appender-ref ref="Console"/>
-            <appender-ref ref="RollingFile"/>
+            <appender-ref ref="ConsoleAppender"/>
+            <appender-ref ref="RollingFileAppender"/>
         </root>
     </loggers>
 </configuration>

@@ -45,7 +45,7 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
     var showImagesDirectoryPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.onEvent(CreateProjectEvent.CreateProjectDisplayed)
+        viewModel.onEvent(CreateProjectEvent.CreateProjectDialogDisplayed)
     }
 
     rememberSaveable(state.isProjectCreated) {

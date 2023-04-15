@@ -79,30 +79,34 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                 }
             } else {
 
-                var previewSize by remember { mutableStateOf(IntSize.Zero) }
                 mainImagePainter?.let { image ->
+                    var previewSize by remember { mutableStateOf(IntSize.Zero) }
+
+                    val (size, onSizeChanged) = remember { mutableStateOf(IntSize.Zero) }
+                    rememberSaveable(size) {
+                        val imageRatio = image.width.toFloat() / image.height
+                        var imageWidth = size.width
+                        var imageHeight = (imageWidth / imageRatio).toInt()
+                        if (imageHeight > size.height) {
+                            imageHeight = size.height
+                            imageWidth = (imageHeight * imageRatio).toInt()
+                        }
+                        previewSize = IntSize(imageWidth, imageHeight)
+                        mainImageScale = image.width.toFloat() / imageWidth
+                        viewModel.sendEvent(
+                            HomeEvent.ImageSizeChanged(
+                                imageSize = Size(
+                                    image.width.toFloat(),
+                                    image.height.toFloat()
+                                )
+                            )
+                        )
+                    }
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .onSizeChanged { area ->
-                                val imageRatio = image.width.toFloat() / image.height
-                                var imageWidth = area.width
-                                var imageHeight = (imageWidth / imageRatio).toInt()
-                                if (imageHeight > area.height) {
-                                    imageHeight = area.height
-                                    imageWidth = (imageHeight * imageRatio).toInt()
-                                }
-                                previewSize = IntSize(imageWidth, imageHeight)
-                                mainImageScale = image.width.toFloat() / imageWidth
-                                viewModel.sendEvent(
-                                    HomeEvent.ImageSizeChanged(
-                                        imageSize = Size(
-                                            image.width.toFloat(),
-                                            image.height.toFloat()
-                                        )
-                                    )
-                                )
-                            },
+                            .onSizeChanged(onSizeChanged),
                         contentAlignment = Alignment.Center
                     ) {
                         Box(
