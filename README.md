@@ -27,7 +27,6 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 * [Koin Dependency Injection Framework](https://github.com/InsertKoinIO/koin)
 
 ### TODO list
-* Refresh thumbnails after cropping (now there is a bug - it is refreshed after next recompisition)
 * Hotkeys for cancelling and applying cropping
 * Button to close project
 * Button to create/drop all caption files
@@ -54,6 +53,12 @@ Create distributable
 ```shell
 gradlew.bat clean compileKotlin createDistributable
 ```
+
+### Known bugs
+
+* In crop mode right top and left bottom corners are resizing area incorrectly (proportional resize, without Shift)
+* Thumbnails after cropping refreshes with delay (after next recompisition)
+* Image placed incorrectly inside program window until the window is resized
 
 ### Useful links
 

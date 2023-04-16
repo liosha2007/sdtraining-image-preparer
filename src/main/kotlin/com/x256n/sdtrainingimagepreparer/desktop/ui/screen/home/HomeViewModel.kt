@@ -3,6 +3,7 @@
 package com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.x256n.sdtrainingimagepreparer.desktop.common.BaseViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.common.DisplayableException
@@ -119,7 +120,10 @@ class HomeViewModel(
     }
 
     private fun changeImageSizeOnScreen(event: HomeEvent.ImageSizeChanged) {
-        _state.value = state.value.copy(mainImageSize = event.imageSize)
+        _state.value = state.value.copy(
+            imageSize = event.imageSize,
+            imageScale = event.imageScale
+        )
     }
 
     private suspend fun changeSelectedImage(event: HomeEvent.ImageSelected) {
@@ -204,16 +208,31 @@ class HomeViewModel(
             isEditMode = event.enable,
             cropOffset = if (event.enable) state.value.cropOffset else Offset(0f, 0f),
             cropSize = if (event.enable) state.value.cropSize else Size(
-                min(512f, state.value.mainImageSize.width),
-                min(512f, state.value.mainImageSize.height)
+                min(512f, state.value.imageSize.width),
+                min(512f, state.value.imageSize.height)
             )
         )
     }
 
     private suspend fun cropResizeImage() {
-        _log.debug("cropRectChanged: offset = ${state.value.cropOffset}, size = ${state.value.cropSize}")
+        val imageScale = state.value.imageScale
+        val cropOffset = state.value.cropOffset.copy(
+            x = state.value.cropOffset.x,
+            y = state.value.cropOffset.y,
+        )
+        val cropSize = state.value.cropSize.copy(
+            width = state.value.cropSize.width,
+            height = state.value.cropSize.height
+        )
+
+        _log.debug("cropResizeImage: offset = $cropOffset, size = $cropSize, scale = $imageScale")
+
         val imageModel = state.value.data[state.value.dataIndex]
-        val newImageModel = cropResizeImage(imageModel, state.value.cropOffset, state.value.cropSize)
+        val newImageModel = cropResizeImage(
+            imageModel,
+            cropOffset,
+            cropSize
+        )
         _state.value = state.value.copy(
             data = state.value.data.map { if (it == imageModel) newImageModel else it },
             isEditMode = false
@@ -225,8 +244,8 @@ class HomeViewModel(
         var y = state.value.cropOffset.y
         var width = event.targetSize
         var height = event.targetSize
-        val imageWidth = state.value.mainImageSize.width
-        val imageHeight = state.value.mainImageSize.height
+        val imageWidth = state.value.imageSize.width
+        val imageHeight = state.value.imageSize.height
 
         if (width > imageWidth) {
             x = 0f
@@ -249,10 +268,121 @@ class HomeViewModel(
     }
 
     private fun changeCropRectangle(event: HomeEvent.CropRectChanged) {
-        _state.value = state.value.copy(
-            cropOffset = event.offset,
-            cropSize = event.size
+        val imageScale = state.value.imageScale
+        val imageSize = state.value.imageSize
+        val cropRect = Rect(state.value.cropOffset, state.value.cropSize)
+        val activeType = state.value.cropActiveType
+        val isShiftPressed = event.isShiftPressed
+        val offset = event.offset.copy(
+            event.offset.x * imageScale,
+            event.offset.y * imageScale
         )
+
+        _log.debug("offset = $offset")
+
+        val offsetHorz = if (isShiftPressed) offset.x else (offset.x + offset.y) / 2
+        val offsetVert = if (isShiftPressed) offset.y else (offset.x + offset.y) / 2
+
+        var cropAreaRect = when (activeType) {
+            is ActiveType.LeftTop -> cropRect.copy(
+                left = cropRect.left + offsetHorz,
+                top = cropRect.top + offsetVert,
+            )
+            is ActiveType.RightTop -> cropRect.copy(
+                top = cropRect.top + offsetVert,
+                right = cropRect.right + offsetHorz,
+            )
+            is ActiveType.RightBottom -> cropRect.copy(
+                right = cropRect.right + offsetHorz,
+                bottom = cropRect.bottom + offsetVert,
+            )
+            is ActiveType.LeftBottom -> cropRect.copy(
+                left = cropRect.left + offsetHorz,
+                bottom = cropRect.bottom + offsetVert,
+            )
+            is ActiveType.Center -> cropRect.copy(
+                left = cropRect.left + offset.x,
+                top = cropRect.top + offset.y,
+                right = cropRect.right + offset.x,
+                bottom = cropRect.bottom + offset.y,
+            )
+            else -> cropRect
+        }
+
+        // Prevent area to be out of image
+        cropAreaRect = keepAreaInsideImage(cropAreaRect, imageSize)
+
+        val scaledMinSize = 25 * imageScale
+
+        // Prevent left corner is on right of right corner and so on
+        cropAreaRect = if (cropAreaRect.right - cropAreaRect.left < scaledMinSize) { // left must not be more right
+            if (activeType == ActiveType.LeftTop || activeType == ActiveType.LeftBottom) {
+                cropAreaRect.copy(left = cropAreaRect.right - scaledMinSize)
+            } else {
+                cropAreaRect.copy(right = cropAreaRect.left + scaledMinSize)
+            }
+        } else cropAreaRect
+
+        cropAreaRect = if (cropAreaRect.bottom - cropAreaRect.top < scaledMinSize) { // top must not be more bottom
+            if (activeType == ActiveType.LeftTop || activeType == ActiveType.RightTop) {
+                cropAreaRect.copy(top = cropAreaRect.bottom - scaledMinSize)
+            } else {
+                cropAreaRect.copy(bottom = cropAreaRect.top + scaledMinSize)
+            }
+        } else cropAreaRect
+
+        _log.debug("cropAreaRect = $cropAreaRect")
+        _state.value = state.value.copy(
+            cropOffset = cropAreaRect.topLeft,
+            cropSize = cropAreaRect.size
+        )
+    }
+
+    private fun keepAreaInsideImage(cropAreaRect: Rect, scaledImageSize: Size): Rect {
+        // Prevent area to be out of image
+        return if (cropAreaRect.left < 0) { // area must be inside image
+            cropAreaRect.copy(
+                left = 0f,
+                right = cropAreaRect.right + (cropAreaRect.left * -1)
+            )
+        } else if (cropAreaRect.right > scaledImageSize.width) { // area must be inside image
+            cropAreaRect.copy(
+                right = scaledImageSize.width,
+                left = cropAreaRect.left - (cropAreaRect.right - scaledImageSize.width)
+            )
+        } else if (cropAreaRect.top < 0) { // area must be inside image
+            cropAreaRect.copy(
+                top = 0f,
+                bottom = cropAreaRect.bottom + (cropAreaRect.top * -1)
+            )
+        } else if (cropAreaRect.bottom > scaledImageSize.height) { // area must be inside image
+            cropAreaRect.copy(
+                bottom = scaledImageSize.height,
+                top = cropAreaRect.top - (cropAreaRect.bottom - scaledImageSize.height)
+            )
+        } else cropAreaRect
+    }
+
+    private fun changeCropActiveType(event: HomeEvent.CropActiveTypeChanged) {
+        val rectOffset = state.value.cropOffset
+        val rectSize = state.value.cropSize
+        val imageScale = state.value.imageScale
+
+        val cropActiveType = if (event.position != null) {
+            val scaledAreaRect = Rect(
+                left = rectOffset.x / imageScale,
+                top = rectOffset.y / imageScale,
+                right = (rectOffset.x + rectSize.width) / imageScale,
+                bottom = (rectOffset.y + rectSize.height) / imageScale,
+            )
+            ActiveType.getActiveType(
+                event.position,
+                scaledAreaRect
+            )
+        } else ActiveType.None
+
+        _log.debug("cropActiveType = $cropActiveType")
+        _state.value = state.value.copy(cropActiveType = cropActiveType)
     }
 
     // endregion
@@ -288,7 +418,7 @@ class HomeViewModel(
             // endregion
 
             // region Toolbar events
-            is HomeEvent.EditModeClicked, is HomeEvent.CropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.CropRectChanged -> {
+            is HomeEvent.EditModeClicked, is HomeEvent.CropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.CropRectChanged, is HomeEvent.CropActiveTypeChanged -> {
                 onToolbarEvent(event)
             }
             // endregion
@@ -344,6 +474,7 @@ class HomeViewModel(
             is HomeEvent.CropApplyClicked -> cropResizeImage()
             is HomeEvent.ChangeAreaToSize -> changeAreaSize(event)
             is HomeEvent.CropRectChanged -> changeCropRectangle(event)
+            is HomeEvent.CropActiveTypeChanged -> changeCropActiveType(event)
             else -> throw DisplayableException("Unexpected application state: 7c0e742c3764($event)")
         }
     }

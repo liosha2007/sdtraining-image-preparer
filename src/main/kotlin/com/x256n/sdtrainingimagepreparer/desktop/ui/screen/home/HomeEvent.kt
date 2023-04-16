@@ -20,7 +20,7 @@ sealed class HomeEvent {
 
     // region Image events
     object DeleteImage : HomeEvent()
-    data class ImageSizeChanged(val imageSize: Size) : HomeEvent()
+    data class ImageSizeChanged(val imageSize: Size, val imageScale: Float) : HomeEvent()
     data class ImageSelected(val index: Int) : HomeEvent()
     object ShowNextImage : HomeEvent()
     object ShowPrevImage : HomeEvent()
@@ -37,6 +37,7 @@ sealed class HomeEvent {
     data class EditModeClicked(val enable: Boolean) : HomeEvent()
     object CropApplyClicked : HomeEvent()
     data class ChangeAreaToSize(val targetSize: Float) : HomeEvent()
-    data class CropRectChanged(val offset: Offset, val size: Size) : HomeEvent()
+    data class CropRectChanged(val offset: Offset, val isShiftPressed: Boolean) : HomeEvent()
+    data class CropActiveTypeChanged(val position: Offset?) : HomeEvent()
     // endregion
 }
