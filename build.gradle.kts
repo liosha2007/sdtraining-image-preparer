@@ -7,7 +7,7 @@ plugins {
     kotlin("plugin.serialization") version "1.6.10"
 }
 
-group = "com.x256n.sdtrainimagepreparer.desktop"
+group = "com.x256n.sdtrainingimagepreparer.desktop"
 version = "1.0.0"
 
 repositories {
@@ -56,7 +56,7 @@ tasks.withType<KotlinCompile> {
 
 compose.desktop {
     application {
-        mainClass = "com.x256n.sdtrainimagepreparer.desktop.MainKt"
+        mainClass = "com.x256n.sdtrainingimagepreparer.desktop.MainKt"
         jvmArgs += listOf(
             "-XX:ErrorFile=hs_err.log.txt",
 //            "-XX:-HeapDumpOnOutOfMemoryError",
@@ -64,7 +64,7 @@ compose.desktop {
         )
         nativeDistributions {
             targetFormats(TargetFormat.Msi)
-            packageName = "sdtrain-image-preparer"
+            packageName = "sdtraining-image-preparer"
             packageVersion = project.version.toString()
             windows {
                 dirChooser = true

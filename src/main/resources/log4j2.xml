@@ -19,7 +19,7 @@
     </appenders>
     <loggers>
 
-        <logger name="com.x256n.sdtrainimagepreparer" level="TRACE">
+        <logger name="com.x256n.sdtrainingimagepreparer" level="TRACE">
             <appender-ref ref="RollingFileAppender"/>
             <appender-ref ref="ConsoleAppender"/>
         </logger>

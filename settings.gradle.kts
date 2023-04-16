@@ -8,5 +8,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "sdtrain-image-preparer"
+rootProject.name = "sdtraining-image-preparer"
 
