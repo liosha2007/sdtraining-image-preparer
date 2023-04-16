@@ -40,7 +40,14 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
             "Drop project...",
             mnemonic = 'D',
             onClick = {
-                viewModel.sendEvent(HomeEvent.DropProject)
+                navigator.goTo(
+                    Destinations.YesCancel(
+                        message = "Project files and config will be deleted.\nImages and captions will NOT be affected. Drop project?",
+                        targetDest = Destinations.Home(
+                            action = Destinations.Home.Action.YesCancelDialogResult(targetEvent = HomeEvent.DropProject)
+                        )
+                    )
+                )
             }
         )
         Item(

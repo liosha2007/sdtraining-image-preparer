@@ -67,7 +67,7 @@ class ProjectConfigRepositoryImpl(
             projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
 
             val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
-            projectConfigDirectory.assertExist(::NotAProjectException)
+            projectConfigDirectory.assertExist({ NotAProjectException(it.parent) })
 
             val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
             configPath.assertExist(::ProjectConfigNotFoundException, isFile = true)
@@ -90,7 +90,7 @@ class ProjectConfigRepositoryImpl(
             projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
 
             val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
-            projectConfigDirectory.assertExist(::NotAProjectException)
+            projectConfigDirectory.assertExist({ NotAProjectException(it.parent) })
 
             val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
             configPath.assertExist(::ProjectConfigNotFoundException, isFile = true)
@@ -113,7 +113,7 @@ class ProjectConfigRepositoryImpl(
             projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
 
             val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
-            projectConfigDirectory.assertExist(::NotAProjectException)
+            projectConfigDirectory.assertExist({ NotAProjectException(it.parent) })
 
             try {
                 runInterruptible(dispatcherProvider.io) {
@@ -144,7 +144,7 @@ class ProjectConfigRepositoryImpl(
         projectDirectory.assertExist(::ProjectDirectoryDoesNotExist)
 
         val projectConfigDirectory = projectDirectory.resolve(Constants.PROJECT_DIRECTORY_NAME)
-        projectConfigDirectory.assertExist(::NotAProjectException)
+        projectConfigDirectory.assertExist({ NotAProjectException(it.parent) })
 
         val configPath = projectConfigDirectory.resolve(Constants.CONFIG_FILE_NAME)
         configPath.assertExist(::ProjectConfigNotFoundException, isFile = true)

@@ -27,7 +27,8 @@ class HomeViewModel(
     private val splitCaption: SplitCaptionUseCase,
     private val cropResizeImage: CropResizeImageUseCase,
     private val createNewAndMergeExistingCaptions: CreateNewAndMergeExistingCaptionsUseCase,
-    private val configManager: ConfigManager
+    private val configManager: ConfigManager,
+    private val dropProject: DropProjectUseCase,
 ) : BaseViewModel<HomeState>(emptyState = HomeState()), KoinComponent {
 
     // region Application events
@@ -42,9 +43,9 @@ class HomeViewModel(
     }
 
     private fun exitApplication(event: HomeEvent.Exit) {
-        if (event.isConfirmed) {
-            exitProcess(0)
-        }
+//        if (event.isConfirmed) {
+        exitProcess(0)
+//        }
     }
 
     // endregion
@@ -53,7 +54,7 @@ class HomeViewModel(
 
     private suspend fun loadProject(event: HomeEvent.LoadProject) {
         state.value.projectDirectory?.let {
-            // state.value.projectDirectory == null means there is no opened projects
+            // state.value.projectDirectory == null means there is no opened project
             sendEvent(HomeEvent.CloseProject)
         }
 
@@ -101,8 +102,11 @@ class HomeViewModel(
         _state.value = HomeState()
     }
 
-    private fun dropProject() {
-        TODO("Not yet implemented")
+    private suspend fun closeAndDropProject() {
+        state.value.projectDirectory?.let { projectDirectory ->
+            sendEvent(HomeEvent.CloseProject)
+            dropProject(projectDirectory)
+        }
     }
 
     // endregion
@@ -306,7 +310,7 @@ class HomeViewModel(
             is HomeEvent.LoadProject -> loadProject(event)
             is HomeEvent.OpenProject -> showOpenProjectDialog()
             is HomeEvent.CloseProject -> closeProject()
-            is HomeEvent.DropProject -> dropProject()
+            is HomeEvent.DropProject -> closeAndDropProject()
             else -> throw DisplayableException("Unexpected application state: 24cf91708f36($event)")
         }
     }

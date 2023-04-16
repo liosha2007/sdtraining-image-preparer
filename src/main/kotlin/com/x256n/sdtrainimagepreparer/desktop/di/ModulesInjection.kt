@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalPathApi::class)
+@file:OptIn(ExperimentalPathApi::class, ExperimentalPathApi::class, ExperimentalPathApi::class)
 
 package com.x256n.sdtrainimagepreparer.desktop.di
 
@@ -9,6 +9,7 @@ import com.x256n.sdtrainimagepreparer.desktop.repository.*
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.about.AboutViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.createproject.CreateProjectViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.settings.SettingsViewModel
+import com.x256n.sdtrainimagepreparer.desktop.ui.dialog.yescancel.YesCancelViewModel
 import com.x256n.sdtrainimagepreparer.desktop.ui.screen.home.HomeViewModel
 import com.x256n.sdtrainimagepreparer.desktop.usecase.*
 import org.koin.core.module.dsl.bind
@@ -31,12 +32,14 @@ object ModulesInjection {
                 splitCaption = get(),
                 cropResizeImage = get(),
                 createNewAndMergeExistingCaptions = get(),
-                configManager = get()
+                configManager = get(),
+                dropProject = get(),
             )
         }
         factoryOf(::AboutViewModel)
         factoryOf(::SettingsViewModel)
         factoryOf(::CreateProjectViewModel)
+        factoryOf(::YesCancelViewModel)
     }
     val usecaseBeans = module {
         factoryOf(::InitializeProjectUseCase)
@@ -50,6 +53,7 @@ object ModulesInjection {
         factoryOf(::JoinCaptionUseCase)
         factoryOf(::CropResizeImageUseCase)
         factoryOf(::CreateNewAndMergeExistingCaptionsUseCase)
+        factoryOf(::DropProjectUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)

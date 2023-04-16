@@ -1,10 +1,8 @@
 package com.x256n.sdtrainimagepreparer.desktop.ui.dialog.about
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -17,6 +15,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogState
@@ -45,7 +45,7 @@ fun AboutDialog(navigator: Navigator<Destinations>) {
         undecorated = false,
         resizable = false,
         visible = true,
-        state = DialogState(width = 320.dp, height = 240.dp),
+        state = DialogState(width = 320.dp, height = 320.dp),
         onKeyEvent = {
             if (it.key == Key.Escape) {
                 navigator.goBack()
@@ -61,17 +61,23 @@ fun AboutDialog(navigator: Navigator<Destinations>) {
             Column(
                 modifier = Modifier
                     .padding(MaterialTheme.spaces.small)
-                    .fillMaxSize()
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceAround
             ) {
 
-                Column(
+                Image(modifier = Modifier
+                    .size(128.dp, 128.dp),
+                    painter = painterResource("icon.ico"),
+                    contentDescription = "icon"
+                )
+
+                Text(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(MaterialTheme.spaces.extraSmall),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Made by me!")
-                }
+                        .padding(MaterialTheme.spaces.medium),
+                    text = "Made by liosha\nhttps://github.com/liosha2007",
+                    textAlign = TextAlign.Center
+                )
             }
         } else {
             Column(

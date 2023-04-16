@@ -10,7 +10,7 @@
 ### TODO
 * Refresh thumbnails after cropping
 * Hotkeys for cancelling and applying cropping
-* Button to close and drop project files
+* Button to close project
 * Button to create/drop all caption files
 * Button to delete source image
 * Square cropping area

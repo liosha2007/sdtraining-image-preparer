@@ -56,6 +56,9 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
         if (dest is Destinations.Home && dest.action is Destinations.Home.Action.LoadProject) {
             viewModel.sendEvent(HomeEvent.LoadProject(dest.action.projectDirectory))
         }
+        if (dest is Destinations.Home && dest.action is Destinations.Home.Action.YesCancelDialogResult) {
+            viewModel.sendEvent(event = dest.action.targetEvent as HomeEvent)
+        }
     }
 
     LaunchedEffect(Unit) {
