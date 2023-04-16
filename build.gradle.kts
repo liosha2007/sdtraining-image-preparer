@@ -35,7 +35,6 @@ dependencies {
     implementation("io.insert-koin:koin-core:3.3.3")
 //    implementation("io.insert-koin:koin-core-jvm:3.3.3")
 
-    // Fixes Warning: org.lwjgl.util.nfd.NativeFileDialog: can't find referenced class javax.annotation.Nullable
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
     // log4j2
