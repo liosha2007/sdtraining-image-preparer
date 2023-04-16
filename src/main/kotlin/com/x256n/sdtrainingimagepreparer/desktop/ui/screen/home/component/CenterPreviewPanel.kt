@@ -48,7 +48,7 @@ import kotlin.io.path.name
 import kotlin.math.round
 
 @Composable
-fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
+fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, isShiftPressed: Boolean) {
     val log = remember { LoggerFactory.getLogger("CenterPreviewPanel") }
     val state by viewModel.state
     val coroutineScope = rememberCoroutineScope()
@@ -151,20 +151,20 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                                             )
                                             var newAreaRectangle = when (activeType) {
                                                 is ActiveType.LeftTop -> scaledAreaRect.copy(
-                                                    left = scaledAreaRect.left + offset.x,
-                                                    top = scaledAreaRect.top + offset.y
+                                                    left = scaledAreaRect.left + if (isShiftPressed) offset.x else (offset.x + offset.y) / 2,
+                                                    top = scaledAreaRect.top + if (isShiftPressed) offset.y else (offset.x + offset.y) / 2
                                                 )
                                                 is ActiveType.RightTop -> scaledAreaRect.copy(
-                                                    right = scaledAreaRect.right + offset.x,
-                                                    top = scaledAreaRect.top + offset.y
+                                                    right = scaledAreaRect.right + if (isShiftPressed) offset.x else (offset.x + offset.y) / 2,
+                                                    top = scaledAreaRect.top + if (isShiftPressed) offset.y else (offset.x + offset.y) / 2
                                                 )
                                                 is ActiveType.RightBottom -> scaledAreaRect.copy(
-                                                    right = scaledAreaRect.right + offset.x,
-                                                    bottom = scaledAreaRect.bottom + offset.y
+                                                    right = scaledAreaRect.right + if (isShiftPressed) offset.x else (offset.x + offset.y) / 2,
+                                                    bottom = scaledAreaRect.bottom + if (isShiftPressed) offset.y else (offset.x + offset.y) / 2
                                                 )
                                                 is ActiveType.LeftBottom -> scaledAreaRect.copy(
-                                                    left = scaledAreaRect.left + offset.x,
-                                                    bottom = scaledAreaRect.bottom + offset.y
+                                                    left = scaledAreaRect.left + if (isShiftPressed) offset.x else (offset.x + offset.y) / 2,
+                                                    bottom = scaledAreaRect.bottom + if (isShiftPressed) offset.y else (offset.x + offset.y) / 2
                                                 )
                                                 is ActiveType.Center -> scaledAreaRect.copy(
                                                     top = scaledAreaRect.top + offset.y,

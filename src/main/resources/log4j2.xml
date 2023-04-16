@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration status="DEBUG" monitorInterval="30" strict="true" name="XMLConfigTest">
-    <properties>
-        <property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%t] %highlight{%c{1.}.%M(%L)}: %msg%n</property>
-    </properties>
     <appenders>
 
         <Appender type="Console" name="ConsoleAppender" target="SYSTEM_OUT">
-            <Layout type="PatternLayout" pattern="${LOG_PATTERN}"/>
+            <Layout type="PatternLayout" pattern="%d{HH:mm:ss.SSS} %highlight{%-5level} %highlight{%c{1.}.%M(%L)}: %msg%n"/>
             <LevelRangeFilter minLevel="TRACE" maxLevel="TRACE" onMatch="DENY" onMismatch="ACCEPT"/>
         </Appender>
 
         <RollingFile name="RollingFileAppender" fileName="logs/output.log"
                      filePattern="logs/$${date:yyyy-MM}/output-%d{MM-dd-yyyy}-%i.log.gz">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%t] %highlight{%c{1.}.%M(%L)}: %msg%n"/>
             <SizeBasedTriggeringPolicy size="5 MB"/>
         </RollingFile>
 
     </appenders>
     <loggers>
 
-        <logger name="com.x256n.sdtrainingimagepreparer" level="TRACE">
+        <logger name="com.x256n.sdtrainingimagepreparer" level="TRACE" additivity="false">
             <appender-ref ref="RollingFileAppender"/>
             <appender-ref ref="ConsoleAppender"/>
         </logger>

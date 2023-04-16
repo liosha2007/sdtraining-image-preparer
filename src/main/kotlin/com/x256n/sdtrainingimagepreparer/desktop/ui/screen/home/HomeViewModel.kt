@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.Size
 import com.x256n.sdtrainingimagepreparer.desktop.common.BaseViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.common.DisplayableException
 import com.x256n.sdtrainingimagepreparer.desktop.manager.ConfigManager
+import com.x256n.sdtrainingimagepreparer.desktop.model.KeywordModel
 import com.x256n.sdtrainingimagepreparer.desktop.usecase.*
 import org.koin.core.component.KoinComponent
 import java.nio.file.Paths
@@ -125,22 +126,22 @@ class HomeViewModel(
         val index = event.index
         _log.debug("Selected image: index = $index, name = ${state.value.selectedImageModel.imagePath.name}")
         // Save current keywords to caption file
-        val currentKeywordList = splitCaption(state.value.captionContent)
-        if (currentKeywordList.isNotEmpty()) {
-            writeCaption(state.value[state.value.dataIndex], currentKeywordList)
+        val currentModelKeywordList = splitCaption(state.value.captionContent)
+        if (currentModelKeywordList.isNotEmpty()) {
+            writeCaption(state.value.selectedImageModel, currentModelKeywordList)
         }
-        // Add missing keywords to list
-        _state.value = state.value.copy(
-            keywordList = state.value.addMissingKeywords(currentKeywordList)
-        )
+        // Add missing keywords to right panel
+        val actualRightPanelKeywordList = state.value.keywordList.map { it.copy(isAdded = false) }.toMutableList()
+        actualRightPanelKeywordList.addAll(currentModelKeywordList.map { KeywordModel(it, 1) })
 
-        val currentCaptionKeywords = extractCaptionKeywords(state.value.selectedImageModel)
+        val currentCaptionKeywords = extractCaptionKeywords(state.value.data[index])
 
         // Change selected image
         _state.value = state.value.copy(
+            isEditMode = false,
             dataIndex = index,
-            captionContent = readCaption(state.value.selectedImageModel),
-            keywordList = currentCaptionKeywords.map {
+            captionContent = joinCaption(currentCaptionKeywords.map { it.keyword }),
+            keywordList = actualRightPanelKeywordList.toSet().map {
                 it.copy(isAdded = currentCaptionKeywords.contains(it))
             }
         )

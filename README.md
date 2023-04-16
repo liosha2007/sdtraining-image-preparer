@@ -32,7 +32,6 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 * Button to close project
 * Button to create/drop all caption files
 * Button to delete source image
-* Square cropping area
 * Convert image to another format 
 
 ### Compiling and running

@@ -59,7 +59,7 @@ class CaptionRepositoryImpl(
     override suspend fun read(model: ImageModel): String {
         return withContext(dispatcherProvider.default) {
             val captionPath = model.captionPath
-            _log.debug("captionPath: $captionPath")
+            _log.trace("captionPath: $captionPath")
             try {
                 if (Files.notExists(captionPath)) {
                     return@withContext ""
@@ -67,7 +67,7 @@ class CaptionRepositoryImpl(
                     throw CantLoadCaptionException(captionPath)
                 } else {
                     return@withContext runInterruptible(dispatcherProvider.io) {
-                        _log.debug("Reading caption file...")
+                        _log.debug("Reading caption file '${model.captionPath.fileName}'")
                         return@runInterruptible captionPath.readText(StandardCharsets.UTF_8)
                     }
                 }

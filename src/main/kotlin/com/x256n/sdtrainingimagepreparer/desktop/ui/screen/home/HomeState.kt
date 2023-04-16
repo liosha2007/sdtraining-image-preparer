@@ -35,18 +35,4 @@ data class HomeState(
             if (hasData) "${this[dataIndex].imageSize.width.toInt()} x ${this[dataIndex].imageSize.height.toInt()} - ${this[dataIndex].imageName}" else ""
 
     val isProjectLoaded get() = projectDirectory != null
-
-    fun addMissingKeywords(keywordsSet: List<String>, isAdded: Boolean = true): List<KeywordModel> {
-        val keywordsStringSet = keywordList.map { it.keyword }
-        val filteredKeywordsSet = keywordsSet.filter { !keywordsStringSet.contains(it) }
-        return keywordList.toMutableSet().apply {
-            addAll(filteredKeywordsSet.map {
-                KeywordModel(
-                    keyword = it,
-                    usageCount = 1,
-                    isAdded = isAdded
-                )
-            })
-        }.toList()
-    }
 }

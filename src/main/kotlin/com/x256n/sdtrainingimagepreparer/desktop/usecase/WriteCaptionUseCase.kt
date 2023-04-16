@@ -21,7 +21,7 @@ class WriteCaptionUseCase(
 
     suspend operator fun invoke(model: ImageModel, captionKeywords: List<String>) {
         try {
-            val captionContent = captionKeywords.joinToString("${configManager.keywordsDelimiter} ")
+            val captionContent = captionKeywords.toSet().joinToString("${configManager.keywordsDelimiter} ")
             captionRepository.write(model, captionContent)
         } catch (e: CantSaveCaptionException) {
             _log.error("Can't write to caption file", e)

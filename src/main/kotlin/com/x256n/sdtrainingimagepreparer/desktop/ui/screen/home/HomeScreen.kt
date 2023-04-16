@@ -11,10 +11,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.isShiftPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
@@ -33,7 +29,10 @@ import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
 import org.slf4j.LoggerFactory
 import java.awt.Cursor
+import java.awt.KeyEventDispatcher
+import java.awt.event.KeyEvent
 import java.nio.file.Path
+import javax.swing.FocusManager
 import kotlin.io.path.ExperimentalPathApi
 
 @ExperimentalPathApi
@@ -63,6 +62,32 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
 
     LaunchedEffect(Unit) {
         viewModel.sendEvent(HomeEvent.HomeDisplayed)
+
+    }
+
+    val lazyDataState = rememberLazyListState()
+    val isShiftPressed = remember { mutableStateOf(false) }
+    DisposableEffect(Unit) {
+        val keyEventDispatcher = KeyEventDispatcher { keyEvent ->
+            if (keyEvent.keyCode == KeyEvent.VK_SHIFT) {
+                isShiftPressed.value = keyEvent.id == KeyEvent.KEY_PRESSED
+                true
+            } else if (keyEvent.keyCode == KeyEvent.VK_TAB && keyEvent.id != KeyEvent.KEY_PRESSED) {
+                if (keyEvent.isShiftDown) {
+                    viewModel.sendEvent(HomeEvent.ShowPrevImage)
+                } else {
+                    viewModel.sendEvent(HomeEvent.ShowNextImage)
+                }
+                coroutineScope.launch {
+                    lazyDataState.animateScrollToItem(state.dataIndex)
+                }
+                true
+            } else false
+        }
+        FocusManager.getCurrentManager().addKeyEventDispatcher(keyEventDispatcher)
+        onDispose {
+            FocusManager.getCurrentManager().removeKeyEventDispatcher(keyEventDispatcher)
+        }
     }
 
     DirectoryPicker(state.isShowChooseProjectDirectoryDialog) { projectDirectory ->
@@ -76,26 +101,11 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
     var previewPanelSize by remember { mutableStateOf(IntSize.Zero) }
     var tagsPanelWidth by remember { mutableStateOf(168.dp) }
     var captionPanelHeight by remember { mutableStateOf(64.dp) }
-    val lazyDataState = rememberLazyListState()
     val lazyKeywordState = rememberLazyListState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .onKeyEvent {
-                return@onKeyEvent if (it.key == Key.Tab) {
-                    log.debug("Key event: ${it.key}, shift: ${it.isShiftPressed}")
-                    if (it.isShiftPressed) {
-                        viewModel.sendEvent(HomeEvent.ShowPrevImage)
-                    } else {
-                        viewModel.sendEvent(HomeEvent.ShowNextImage)
-                    }
-                    coroutineScope.launch {
-                        lazyDataState.animateScrollToItem(state.dataIndex)
-                    }
-                    true
-                } else false
-            }
     ) {
 
         HeaderToolsPanel(
@@ -146,7 +156,8 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    isShiftPressed = isShiftPressed.value
                 )
 
                 Spacer(modifier = Modifier
