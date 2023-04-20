@@ -68,46 +68,48 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
 
     val lazyDataState = rememberLazyListState()
     val isShiftPressed = remember { mutableStateOf(false) }
-    DisposableEffect(Unit) {
-        val keyEventDispatcher = KeyEventDispatcher { keyEvent ->
-            if (keyEvent.keyCode == KeyEvent.VK_SHIFT) {
-                isShiftPressed.value = keyEvent.id == KeyEvent.KEY_PRESSED
-                true
-            } else if (keyEvent.keyCode == KeyEvent.VK_TAB && keyEvent.id != KeyEvent.KEY_PRESSED) {
-                if (keyEvent.isShiftDown) {
-                    viewModel.sendEvent(HomeEvent.ShowPrevImage)
-                } else {
-                    viewModel.sendEvent(HomeEvent.ShowNextImage)
-                }
-                coroutineScope.launch {
-                    lazyDataState.animateScrollToItem(state.dataIndex)
-                }
-                true
-            } else if (keyEvent.keyCode == KeyEvent.VK_ENTER) {
-                viewModel.sendEvent(HomeEvent.EnterPressed)
-                true
-            } else if (keyEvent.keyCode == KeyEvent.VK_ESCAPE) {
-                viewModel.sendEvent(HomeEvent.EscPressed)
-                true
-            } else if (keyEvent.keyCode == KeyEvent.VK_DELETE) {
-                if (state.screenMode == ScreenMode.Default) {
-                    navigator.goTo(
-                        Destinations.YesCancel(
-                            message = "Selected image and caption file will be deleted.\nDelete image and caption file?",
-                            targetDest = Destinations.Home(
-                                action = Destinations.Home.Action.YesCancelDialogResult(targetEvent = HomeEvent.DeleteImage)
+    if (navigator.currentKey is Destinations.Home) {
+        DisposableEffect(Unit) {
+            val keyEventDispatcher = KeyEventDispatcher { keyEvent ->
+                if (keyEvent.keyCode == KeyEvent.VK_SHIFT) {
+                    isShiftPressed.value = keyEvent.id == KeyEvent.KEY_PRESSED
+                    true
+                } else if (keyEvent.keyCode == KeyEvent.VK_TAB && keyEvent.id != KeyEvent.KEY_PRESSED) {
+                    if (keyEvent.isShiftDown) {
+                        viewModel.sendEvent(HomeEvent.ShowPrevImage)
+                    } else {
+                        viewModel.sendEvent(HomeEvent.ShowNextImage)
+                    }
+                    coroutineScope.launch {
+                        lazyDataState.animateScrollToItem(state.dataIndex)
+                    }
+                    true
+                } else if (keyEvent.keyCode == KeyEvent.VK_ENTER) {
+                    viewModel.sendEvent(HomeEvent.EnterPressed)
+                    true
+                } else if (keyEvent.keyCode == KeyEvent.VK_ESCAPE) {
+                    viewModel.sendEvent(HomeEvent.EscPressed)
+                    true
+                } else if (keyEvent.keyCode == KeyEvent.VK_DELETE) {
+                    if (state.screenMode == ScreenMode.Default) {
+                        navigator.goTo(
+                            Destinations.YesCancel(
+                                message = "Selected image and caption file will be deleted.\nDelete image and caption file?",
+                                targetDest = Destinations.Home(
+                                    action = Destinations.Home.Action.YesCancelDialogResult(targetEvent = HomeEvent.DeleteImage)
+                                )
                             )
                         )
-                    )
-                } else {
-                    viewModel.sendEvent(HomeEvent.DeletePressed)
-                }
-                true
-            } else false
-        }
-        FocusManager.getCurrentManager().addKeyEventDispatcher(keyEventDispatcher)
-        onDispose {
-            FocusManager.getCurrentManager().removeKeyEventDispatcher(keyEventDispatcher)
+                    } else {
+                        viewModel.sendEvent(HomeEvent.DeletePressed)
+                    }
+                    true
+                } else false
+            }
+            FocusManager.getCurrentManager().addKeyEventDispatcher(keyEventDispatcher)
+            onDispose {
+                FocusManager.getCurrentManager().removeKeyEventDispatcher(keyEventDispatcher)
+            }
         }
     }
 

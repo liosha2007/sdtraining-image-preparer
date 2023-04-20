@@ -14,6 +14,7 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 * Adding/removing keywords from caption files by selecting them in list of keywords (right panel)
 * Preparing keyword list analyzing exist captions files
 * Cropping/resizing image so that it will be in specified size
+* Deleting image
 
 ### Creating new project
 
@@ -31,7 +32,6 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 * Button to create/drop all caption files
 * Convert image to another format
 * Refresh images list from disc
-* Enter/Cancel hotkeys for YesCancel dialog
 
 ### Compiling and running
 
