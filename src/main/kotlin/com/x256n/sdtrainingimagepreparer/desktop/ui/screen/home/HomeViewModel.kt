@@ -21,7 +21,6 @@ import kotlin.system.exitProcess
 class HomeViewModel(
     private val checkProject: CheckProjectUseCase,
     private val loadImageModels: LoadImageModelsUseCase,
-    private val readCaption: ReadCaptionUseCase,
     private val writeCaption: WriteCaptionUseCase,
     private val removeIncorrectThumbnails: RemoveIncorrectThumbnailsUseCase,
     private val extractCaptionKeywords: ExtractCaptionKeywordsUseCase,
@@ -31,6 +30,7 @@ class HomeViewModel(
     private val createNewAndMergeExistingCaptions: CreateNewAndMergeExistingCaptionsUseCase,
     private val configManager: ConfigManager,
     private val dropProject: DropProjectUseCase,
+    private val deleteImage: DeleteImageUseCase,
 ) : BaseViewModel<HomeState>(emptyState = HomeState()), KoinComponent {
 
     // region Application events
@@ -115,8 +115,18 @@ class HomeViewModel(
 
     // region Image events
 
-    private fun deleteImage() {
-        TODO("Not yet implemented")
+    private suspend fun deleteSelectedImage() {
+        val selectedImageModel = state.value.selectedImageModel
+        val dataIndex = state.value.dataIndex
+
+        deleteImage(selectedImageModel)
+
+        _state.value = state.value.copy(
+            data = state.value.data.toMutableList().apply {
+                this.removeAt(dataIndex)
+            },
+            dataIndex = if (dataIndex > state.value.data.lastIndex) state.value.data.lastIndex else dataIndex
+        )
     }
 
     private fun changeImageSizeOnScreen(event: HomeEvent.ImageSizeChanged) {
@@ -406,6 +416,10 @@ class HomeViewModel(
         }
     }
 
+    private fun deleteButtonPressed() {
+        // Deleting image will be processed in screen file. When screenMode is Default event will not be sent here.
+    }
+
     // endregion
 
 
@@ -445,7 +459,7 @@ class HomeViewModel(
             // endregion
 
             // region Keyboard
-            is HomeEvent.EnterPressed, is HomeEvent.EscPressed -> {
+            is HomeEvent.EnterPressed, is HomeEvent.EscPressed, is HomeEvent.DeletePressed -> {
                 onKeyboardEvent(event)
             }
             // endregion
@@ -476,7 +490,7 @@ class HomeViewModel(
     private suspend fun onImageEvent(event: HomeEvent) {
 
         when (event) {
-            is HomeEvent.DeleteImage -> deleteImage()
+            is HomeEvent.DeleteImage -> deleteSelectedImage()
             is HomeEvent.ImageSizeChanged -> changeImageSizeOnScreen(event)
             is HomeEvent.ImageSelected -> changeSelectedImage(event)
             is HomeEvent.ShowNextImage -> showNextImage()
@@ -510,6 +524,7 @@ class HomeViewModel(
         when (event) {
             is HomeEvent.EnterPressed -> enterButtonPressed()
             is HomeEvent.EscPressed -> escButtonPressed()
+            is HomeEvent.DeletePressed -> deleteButtonPressed()
             else -> throw DisplayableException("Unexpected application state: bbceb2ae77ac($event)")
         }
     }

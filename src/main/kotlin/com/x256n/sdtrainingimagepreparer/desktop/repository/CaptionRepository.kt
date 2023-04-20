@@ -20,6 +20,8 @@ interface CaptionRepository {
 
     suspend fun write(model: ImageModel, captionContent: String = "")
 
+    suspend fun delete(model: ImageModel)
+
     fun split(captionContent: String): List<String>
     fun join(keywordList: List<String>): String
 }
@@ -52,6 +54,20 @@ class CaptionRepositoryImpl(
             } catch (e: IOException) {
                 _log.error("Can't write to caption file", e)
                 throw CantSaveCaptionException(captionPath)
+            }
+        }
+    }
+
+    override suspend fun delete(model: ImageModel) {
+        withContext(dispatcherProvider.default) {
+            try {
+                if (Files.exists(model.captionPath)) {
+                    _log.debug("Deleting caption file: {}", model.captionPath)
+                    runInterruptible { Files.delete(model.captionPath) }
+                }
+            } catch (e: IOException) {
+                _log.error("Can't delete caption file", e)
+                throw CantSaveCaptionException(model.captionPath)
             }
         }
     }

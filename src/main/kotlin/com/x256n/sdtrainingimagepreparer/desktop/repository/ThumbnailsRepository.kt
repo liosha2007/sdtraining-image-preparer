@@ -70,6 +70,7 @@ class ThumbnailsRepositoryImpl(
     override suspend fun delete(model: ImageModel) {
         runInterruptible(dispatcherProvider.io) {
             if (Files.exists(model.thumbnailPath)) {
+                _log.debug("Deleting thumbnail image: {}", model.thumbnailPath)
                 Files.delete(model.thumbnailPath)
             }
         }

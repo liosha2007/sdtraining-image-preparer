@@ -27,12 +27,11 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 * [Koin Dependency Injection Framework](https://github.com/InsertKoinIO/koin)
 
 ### TODO list
-* Hotkeys for cancelling and applying cropping
 * Button to close project
 * Button to create/drop all caption files
-* Button to delete source image
 * Convert image to another format
 * Refresh images list from disc
+* Enter/Cancel hotkeys for YesCancel dialog
 
 ### Compiling and running
 

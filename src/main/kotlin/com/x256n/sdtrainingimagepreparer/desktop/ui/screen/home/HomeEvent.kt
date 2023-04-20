@@ -44,5 +44,6 @@ sealed class HomeEvent {
     // region Keyboard events
     object EnterPressed : HomeEvent()
     object EscPressed : HomeEvent()
+    object DeletePressed : HomeEvent()
     // endregion
 }

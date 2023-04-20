@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import com.chrynan.navigation.ExperimentalNavigationApi
+import com.chrynan.navigation.compose.goTo
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Navigator
@@ -88,6 +89,20 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
             } else if (keyEvent.keyCode == KeyEvent.VK_ESCAPE) {
                 viewModel.sendEvent(HomeEvent.EscPressed)
                 true
+            } else if (keyEvent.keyCode == KeyEvent.VK_DELETE) {
+                if (state.screenMode == ScreenMode.Default) {
+                    navigator.goTo(
+                        Destinations.YesCancel(
+                            message = "Selected image and caption file will be deleted.\nDelete image and caption file?",
+                            targetDest = Destinations.Home(
+                                action = Destinations.Home.Action.YesCancelDialogResult(targetEvent = HomeEvent.DeleteImage)
+                            )
+                        )
+                    )
+                } else {
+                    viewModel.sendEvent(HomeEvent.DeletePressed)
+                }
+                true
             } else false
         }
         FocusManager.getCurrentManager().addKeyEventDispatcher(keyEventDispatcher)
@@ -117,6 +132,7 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
         HeaderToolsPanel(
             modifier = Modifier
                 .height(24.dp),
+            navigator = navigator,
             viewModel = viewModel
         )
 

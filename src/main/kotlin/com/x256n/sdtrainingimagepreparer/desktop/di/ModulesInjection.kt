@@ -24,7 +24,6 @@ object ModulesInjection {
             HomeViewModel(
                 checkProject = get(),
                 loadImageModels = get(),
-                readCaption = get(),
                 removeIncorrectThumbnails = get(),
                 extractCaptionKeywords = get(),
                 writeCaption = get(),
@@ -34,6 +33,7 @@ object ModulesInjection {
                 createNewAndMergeExistingCaptions = get(),
                 configManager = get(),
                 dropProject = get(),
+                deleteImage = get(),
             )
         }
         factoryOf(::AboutViewModel)
@@ -54,6 +54,7 @@ object ModulesInjection {
         factoryOf(::CropResizeImageUseCase)
         factoryOf(::CreateNewAndMergeExistingCaptionsUseCase)
         factoryOf(::DropProjectUseCase)
+        factoryOf(::DeleteImageUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)
