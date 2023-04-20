@@ -16,7 +16,7 @@ data class HomeState(
     val dataIndex: Int = -1,
     val captionContent: String = "",
     val keywordList: List<KeywordModel> = emptyList(),
-    val isEditMode: Boolean = false,
+    val screenMode: ScreenMode = ScreenMode.Default,
 
     // How the image was changed to be displayed
     val imageScale: Float = 1f,
@@ -55,6 +55,10 @@ data class HomeState(
         )
 }
 
+sealed class ScreenMode {
+    object Default: ScreenMode()
+    object ResizeCrop: ScreenMode()
+}
 
 sealed class ActiveType {
     object None : ActiveType()

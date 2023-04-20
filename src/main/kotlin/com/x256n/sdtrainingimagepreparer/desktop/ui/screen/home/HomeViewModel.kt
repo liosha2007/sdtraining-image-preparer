@@ -142,7 +142,7 @@ class HomeViewModel(
 
         // Change selected image
         _state.value = state.value.copy(
-            isEditMode = false,
+            screenMode = ScreenMode.Default,
             dataIndex = index,
             captionContent = joinCaption(currentCaptionKeywords.map { it.keyword }),
             keywordList = actualRightPanelKeywordList.toSet().map {
@@ -205,7 +205,7 @@ class HomeViewModel(
 
     private fun toggleEditMode(event: HomeEvent.EditModeClicked) {
         _state.value = state.value.copy(
-            isEditMode = event.enable,
+            screenMode = if (event.enable) ScreenMode.ResizeCrop else ScreenMode.Default,
             cropOffset = if (event.enable) state.value.cropOffset else Offset(0f, 0f),
             cropSize = if (event.enable) state.value.cropSize else Size(
                 min(512f, state.value.imageSize.width),
@@ -235,7 +235,7 @@ class HomeViewModel(
         )
         _state.value = state.value.copy(
             data = state.value.data.map { if (it == imageModel) newImageModel else it },
-            isEditMode = false
+            screenMode = ScreenMode.Default
         )
     }
 
@@ -387,6 +387,27 @@ class HomeViewModel(
 
     // endregion
 
+    // region Keyboard events
+
+    private fun enterButtonPressed() {
+        if (state.value.screenMode == ScreenMode.ResizeCrop) {
+            sendEvent(HomeEvent.CropApplyClicked)
+        }
+    }
+
+    private fun escButtonPressed() {
+        if (state.value.screenMode == ScreenMode.ResizeCrop) {
+            _state.value = state.value.copy(
+                screenMode = ScreenMode.Default,
+                cropOffset = Offset(0f, 0f),
+                cropSize = Size(512f, 512f),
+                cropActiveType = ActiveType.None,
+            )
+        }
+    }
+
+    // endregion
+
 
     /**
      * This method was made this way just to make 'when' smaller so that IDE will not show warning about too deprecated method
@@ -420,6 +441,12 @@ class HomeViewModel(
             // region Toolbar events
             is HomeEvent.EditModeClicked, is HomeEvent.CropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.CropRectChanged, is HomeEvent.CropActiveTypeChanged -> {
                 onToolbarEvent(event)
+            }
+            // endregion
+
+            // region Keyboard
+            is HomeEvent.EnterPressed, is HomeEvent.EscPressed -> {
+                onKeyboardEvent(event)
             }
             // endregion
             else -> {
@@ -476,6 +503,14 @@ class HomeViewModel(
             is HomeEvent.CropRectChanged -> changeCropRectangle(event)
             is HomeEvent.CropActiveTypeChanged -> changeCropActiveType(event)
             else -> throw DisplayableException("Unexpected application state: 7c0e742c3764($event)")
+        }
+    }
+
+    private fun onKeyboardEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.EnterPressed -> enterButtonPressed()
+            is HomeEvent.EscPressed -> escButtonPressed()
+            else -> throw DisplayableException("Unexpected application state: bbceb2ae77ac($event)")
         }
     }
 

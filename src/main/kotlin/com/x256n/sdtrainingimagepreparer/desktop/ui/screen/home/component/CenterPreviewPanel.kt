@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.x256n.sdtrainingimagepreparer.desktop.ui.component.pathPainter
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.ScreenMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
@@ -120,7 +121,7 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                                 contentDescription = state[state.dataIndex].imagePath.name,
                                 contentScale = ContentScale.Fit
                             )
-                            if (state.isEditMode) {
+                            if (state.screenMode == ScreenMode.ResizeCrop) {
                                 Canvas(
                                     modifier = Modifier
                                         .fillMaxSize()

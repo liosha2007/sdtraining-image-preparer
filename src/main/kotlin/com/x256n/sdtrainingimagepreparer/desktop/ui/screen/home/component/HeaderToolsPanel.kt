@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.ScreenMode
 import kotlin.io.path.ExperimentalPathApi
 
 @Composable
@@ -27,7 +28,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (state.isProjectLoaded) {
-            if (state.isEditMode) {
+            if (state.screenMode == ScreenMode.ResizeCrop) {
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {

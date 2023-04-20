@@ -40,4 +40,9 @@ sealed class HomeEvent {
     data class CropRectChanged(val offset: Offset, val isShiftPressed: Boolean) : HomeEvent()
     data class CropActiveTypeChanged(val position: Offset?) : HomeEvent()
     // endregion
+
+    // region Keyboard events
+    object EnterPressed : HomeEvent()
+    object EscPressed : HomeEvent()
+    // endregion
 }

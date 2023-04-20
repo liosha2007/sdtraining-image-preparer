@@ -82,6 +82,12 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                     lazyDataState.animateScrollToItem(state.dataIndex)
                 }
                 true
+            } else if (keyEvent.keyCode == KeyEvent.VK_ENTER) {
+                viewModel.sendEvent(HomeEvent.EnterPressed)
+                true
+            } else if (keyEvent.keyCode == KeyEvent.VK_ESCAPE) {
+                viewModel.sendEvent(HomeEvent.EscPressed)
+                true
             } else false
         }
         FocusManager.getCurrentManager().addKeyEventDispatcher(keyEventDispatcher)
