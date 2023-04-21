@@ -56,7 +56,6 @@ gradlew.bat clean compileKotlin createDistributable
 ### Known bugs
 
 * In crop mode right top and left bottom corners are resizing area incorrectly (proportional resize, without Shift)
-* Thumbnails after cropping refreshes with delay (after next recompisition)
 
 ### Useful links
 
