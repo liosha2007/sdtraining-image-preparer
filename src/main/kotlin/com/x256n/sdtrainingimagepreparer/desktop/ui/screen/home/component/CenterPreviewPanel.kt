@@ -82,8 +82,9 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                 mainImagePainter?.let { image ->
                     var previewSize by remember { mutableStateOf(IntSize.Zero) }
 
+                    // size is changing by onSizeChanged
                     val (size, onSizeChanged) = remember { mutableStateOf(IntSize.Zero) }
-                    rememberSaveable(size) {
+                    rememberSaveable(/* window size was changed */size, /* image was changed */mainImagePainter) {
                         val imageRatio = image.width.toFloat() / image.height
                         var imageWidth = size.width
                         var imageHeight = (imageWidth / imageRatio).toInt()
