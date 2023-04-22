@@ -21,7 +21,7 @@ data class HomeState(
     // How the image was changed to be displayed
     val imageScale: Float = 1f,
 
-    val imageSize: Size = Size(0f, 0f),
+    val realImageSize: Size = Size(0f, 0f),
     val cropOffset: Offset = Offset(0f, 0f),
     val cropSize: Size = Size(512f, 512f),
     val cropActiveType: ActiveType = ActiveType.None

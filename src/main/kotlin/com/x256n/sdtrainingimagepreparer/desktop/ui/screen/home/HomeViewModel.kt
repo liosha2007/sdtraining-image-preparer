@@ -14,6 +14,8 @@ import org.koin.core.component.KoinComponent
 import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
+import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.system.exitProcess
 
@@ -131,7 +133,7 @@ class HomeViewModel(
 
     private fun changeImageSizeOnScreen(event: HomeEvent.ImageSizeChanged) {
         _state.value = state.value.copy(
-            imageSize = event.imageSize,
+            realImageSize = event.imageSize,
             imageScale = event.imageScale
         )
     }
@@ -218,8 +220,8 @@ class HomeViewModel(
             screenMode = if (event.enable) ScreenMode.ResizeCrop else ScreenMode.Default,
             cropOffset = if (event.enable) state.value.cropOffset else Offset(0f, 0f),
             cropSize = if (event.enable) state.value.cropSize else Size(
-                min(512f, state.value.imageSize.width),
-                min(512f, state.value.imageSize.height)
+                min(512f, state.value.realImageSize.width),
+                min(512f, state.value.realImageSize.height)
             )
         )
     }
@@ -254,8 +256,8 @@ class HomeViewModel(
         var y = state.value.cropOffset.y
         var width = event.targetSize
         var height = event.targetSize
-        val imageWidth = state.value.imageSize.width
-        val imageHeight = state.value.imageSize.height
+        val imageWidth = state.value.realImageSize.width
+        val imageHeight = state.value.realImageSize.height
 
         if (width > imageWidth) {
             x = 0f
@@ -279,7 +281,7 @@ class HomeViewModel(
 
     private fun changeCropRectangle(event: HomeEvent.CropRectChanged) {
         val imageScale = state.value.imageScale
-        val imageSize = state.value.imageSize
+        val realImageSize = state.value.realImageSize
         val cropRect = Rect(state.value.cropOffset, state.value.cropSize)
         val activeType = state.value.cropActiveType
         val isShiftPressed = event.isShiftPressed
@@ -288,39 +290,62 @@ class HomeViewModel(
             event.offset.y * imageScale
         )
 
-        _log.debug("offset = $offset")
-
-        val offsetHorz = if (isShiftPressed) offset.x else (offset.x + offset.y) / 2
-        val offsetVert = if (isShiftPressed) offset.y else (offset.x + offset.y) / 2
-
         var cropAreaRect = when (activeType) {
-            is ActiveType.LeftTop -> cropRect.copy(
-                left = cropRect.left + offsetHorz,
-                top = cropRect.top + offsetVert,
-            )
-            is ActiveType.RightTop -> cropRect.copy(
-                top = cropRect.top + offsetVert,
-                right = cropRect.right + offsetHorz,
-            )
-            is ActiveType.RightBottom -> cropRect.copy(
-                right = cropRect.right + offsetHorz,
-                bottom = cropRect.bottom + offsetVert,
-            )
-            is ActiveType.LeftBottom -> cropRect.copy(
-                left = cropRect.left + offsetHorz,
-                bottom = cropRect.bottom + offsetVert,
-            )
-            is ActiveType.Center -> cropRect.copy(
-                left = cropRect.left + offset.x,
-                top = cropRect.top + offset.y,
-                right = cropRect.right + offset.x,
-                bottom = cropRect.bottom + offset.y,
-            )
-            else -> cropRect
+            is ActiveType.LeftTop -> calculateTopBottomDiagonalOffsets(offset, isShiftPressed,
+                isInsideImage = { offsetHorz, offsetVert ->
+                    cropRect.left + offsetHorz > 0 && cropRect.top + offsetVert > 0
+                },
+                modifyRect = { offsetHorz, offsetVert ->
+                    cropRect.copy(
+                        left = cropRect.left + offsetHorz,
+                        top = cropRect.top + offsetVert,
+                    )
+                })
+            is ActiveType.RightTop -> calculateBottomTopDiagonalOffsets(offset, isShiftPressed,
+                isInsideImage = { offsetHorz, offsetVert ->
+                    cropRect.top + offsetVert > 0 && cropRect.right + offsetHorz < realImageSize.width
+                },
+                modifyRect = { offsetHorz, offsetVert ->
+                    cropRect.copy(
+                        top = cropRect.top + offsetVert,
+                        right = cropRect.right + offsetHorz,
+                    )
+                })
+            is ActiveType.RightBottom -> calculateTopBottomDiagonalOffsets(offset, isShiftPressed,
+                isInsideImage = { offsetHorz, offsetVert ->
+                    cropRect.right + offsetHorz < realImageSize.width && cropRect.bottom + offsetVert < realImageSize.height
+                },
+                modifyRect = { offsetHorz, offsetVert ->
+                    cropRect.copy(
+                        right = cropRect.right + offsetHorz,
+                        bottom = cropRect.bottom + offsetVert,
+                    )
+                })
+            is ActiveType.LeftBottom -> calculateBottomTopDiagonalOffsets(offset, isShiftPressed,
+                isInsideImage = { offsetHorz, offsetVert ->
+                    cropRect.left + offsetHorz > 0 && cropRect.bottom + offsetVert < realImageSize.height
+                },
+                modifyRect = { offsetHorz, offsetVert ->
+                    cropRect.copy(
+                        left = cropRect.left + offsetHorz,
+                        bottom = cropRect.top + cropRect.height + offsetVert,
+                    )
+                })
+            is ActiveType.Center -> {
+                cropRect.copy(
+                    left = cropRect.left + offset.x,
+                    top = cropRect.top + offset.y,
+                    right = cropRect.right + offset.x,
+                    bottom = cropRect.bottom + offset.y,
+                )
+            }
+            else -> {
+                cropRect
+            }
         }
 
         // Prevent area to be out of image
-        cropAreaRect = keepAreaInsideImage(cropAreaRect, imageSize)
+        cropAreaRect = keepAreaInsideImage(cropAreaRect, realImageSize)
 
         val scaledMinSize = 25 * imageScale
 
@@ -341,36 +366,91 @@ class HomeViewModel(
             }
         } else cropAreaRect
 
-        _log.debug("cropAreaRect = $cropAreaRect")
         _state.value = state.value.copy(
             cropOffset = cropAreaRect.topLeft,
             cropSize = cropAreaRect.size
         )
     }
 
-    private fun keepAreaInsideImage(cropAreaRect: Rect, scaledImageSize: Size): Rect {
+    private fun calculateTopBottomDiagonalOffsets(
+        offset: Offset, isShiftPressed: Boolean,
+        isInsideImage: (offsetHorz: Float, offsetVert: Float) -> Boolean,
+        modifyRect: (offsetHorz: Float, offsetVert: Float) -> Rect
+    ): Rect {
+        var offsetHorz = offset.x
+        var offsetVert = offset.y
+        if (!isShiftPressed) {
+            val vector = (abs(offset.x) + abs(offset.y)) / 2
+            if (offset.x < 0 || offset.y < 0) {
+                offsetHorz = -vector
+                offsetVert = -vector
+            } else {
+                offsetHorz = vector
+                offsetVert = vector
+            }
+        }
+        return if (isInsideImage(offsetHorz, offsetVert)) {
+            modifyRect(offsetHorz, offsetVert)
+        } else {
+            // Keep inside image
+            modifyRect(0f, 0f)
+        }
+    }
+
+    private fun calculateBottomTopDiagonalOffsets(
+        offset: Offset, isShiftPressed: Boolean,
+        isInsideImage: (offsetHorz: Float, offsetVert: Float) -> Boolean,
+        modifyRect: (offsetHorz: Float, offsetVert: Float) -> Rect
+    ): Rect {
+        var offsetHorz = offset.x
+        var offsetVert = offset.y
+        if (!isShiftPressed) {
+            val vector = (abs(offset.x) + abs(offset.y)) / 2
+            if (offset.x < 0) {
+                offsetHorz = -vector
+                offsetVert = vector
+            } else {
+                offsetHorz = vector
+                offsetVert = -vector
+            }
+        }
+        return if (isInsideImage(offsetHorz, offsetVert)) {
+            modifyRect(offsetHorz, offsetVert)
+        } else {
+            // Keep inside image
+            modifyRect(0f, 0f)
+        }
+    }
+
+    private fun keepAreaInsideImage(cropAreaRect: Rect, realImageSize: Size): Rect { // Check!! is this method still required
+        var fixedRect = cropAreaRect
         // Prevent area to be out of image
-        return if (cropAreaRect.left < 0) { // area must be inside image
-            cropAreaRect.copy(
+        if (fixedRect.left < 0) {
+            fixedRect = fixedRect.copy(
                 left = 0f,
-                right = cropAreaRect.right + (cropAreaRect.left * -1)
+                right = min(fixedRect.width, realImageSize.width)
             )
-        } else if (cropAreaRect.right > scaledImageSize.width) { // area must be inside image
-            cropAreaRect.copy(
-                right = scaledImageSize.width,
-                left = cropAreaRect.left - (cropAreaRect.right - scaledImageSize.width)
-            )
-        } else if (cropAreaRect.top < 0) { // area must be inside image
-            cropAreaRect.copy(
+        }
+        if (fixedRect.top < 0) {
+            fixedRect = fixedRect.copy(
                 top = 0f,
-                bottom = cropAreaRect.bottom + (cropAreaRect.top * -1)
+                bottom = min(fixedRect.height, realImageSize.height)
             )
-        } else if (cropAreaRect.bottom > scaledImageSize.height) { // area must be inside image
-            cropAreaRect.copy(
-                bottom = scaledImageSize.height,
-                top = cropAreaRect.top - (cropAreaRect.bottom - scaledImageSize.height)
+        }
+        if (fixedRect.right > realImageSize.width) {
+            fixedRect = fixedRect.copy(
+                right = realImageSize.width,
+                left = max(0f, realImageSize.width - fixedRect.width)
             )
-        } else cropAreaRect
+        }
+        if (fixedRect.bottom > realImageSize.height) {
+            fixedRect = fixedRect.copy(
+                bottom = realImageSize.height,
+                top = max(0f, realImageSize.height - fixedRect.height)
+            )
+        }
+
+        return fixedRect
     }
 
     private fun changeCropActiveType(event: HomeEvent.CropActiveTypeChanged) {

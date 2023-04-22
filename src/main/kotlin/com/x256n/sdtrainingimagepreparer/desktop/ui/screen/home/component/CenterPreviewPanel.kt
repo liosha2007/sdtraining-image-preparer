@@ -142,12 +142,10 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                                         },
                                 ) {
                                     val scaledAreaRect = Rect(
-                                        left = state.scaledCropOffset.x,
-                                        top = state.scaledCropOffset.y,
-                                        right = state.scaledCropOffset.x + state.scaledCropSize.width,
-                                        bottom = state.scaledCropOffset.y + state.scaledCropSize.height,
+                                        offset = state.scaledCropOffset,
+                                        size = state.scaledCropSize
                                     )
-                                    drawRect(
+                                    drawRect( // Full rect
                                         color = Color.Yellow.copy(alpha = 0.5f),
                                         topLeft = scaledAreaRect.topLeft, // values in pixels
                                         size = scaledAreaRect.size // values in pixels
