@@ -28,7 +28,7 @@ sealed class HomeEvent {
 
     // region Captions events
     object CreateAllCaptions : HomeEvent()
-    object DeleteAllCaptions : HomeEvent()
+    data class DeleteAllCaptions(val isDeleteOnlyEmpty: Boolean) : HomeEvent()
     data class CaptionContentChanged(val value: String) : HomeEvent()
     data class KeywordSelected(val keywordModel: KeywordModel) : HomeEvent()
     // endregion

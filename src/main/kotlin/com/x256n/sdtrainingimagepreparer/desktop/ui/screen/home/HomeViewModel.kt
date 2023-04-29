@@ -33,6 +33,8 @@ class HomeViewModel(
     private val configManager: ConfigManager,
     private val dropProject: DropProjectUseCase,
     private val deleteImage: DeleteImageUseCase,
+    private val createCaptionIfNotExist: CreateCaptionIfNotExistUseCase,
+    private val deleteCaption: DeleteCaptionUseCase,
 ) : BaseViewModel<HomeState>(emptyState = HomeState()), KoinComponent {
 
     // region Application events
@@ -175,12 +177,16 @@ class HomeViewModel(
 
     // region Captions events
 
-    private fun createAllCaptions() {
-        TODO("Not yet implemented")
+    private suspend fun createAllCaptions() {
+        state.value.data.forEach { model ->
+            createCaptionIfNotExist(model, emptyList())
+        }
     }
 
-    private fun deleteAllCaptions() {
-        TODO("Not yet implemented")
+    private suspend fun deleteAllCaptions(event: HomeEvent.DeleteAllCaptions) {
+        state.value.data.forEach {
+            deleteCaption(it, isDeleteOnlyEmpty = event.isDeleteOnlyEmpty)
+        }
     }
 
     private fun changeCaptionContent(event: HomeEvent.CaptionContentChanged) {
@@ -422,7 +428,10 @@ class HomeViewModel(
         }
     }
 
-    private fun keepAreaInsideImage(cropAreaRect: Rect, realImageSize: Size): Rect { // Check!! is this method still required
+    private fun keepAreaInsideImage(
+        cropAreaRect: Rect,
+        realImageSize: Size
+    ): Rect { // Check!! is this method still required
         var fixedRect = cropAreaRect
         // Prevent area to be out of image
         if (fixedRect.left < 0) {
@@ -582,7 +591,7 @@ class HomeViewModel(
     private suspend fun onCaptionsEvent(event: HomeEvent) {
         when (event) {
             is HomeEvent.CreateAllCaptions -> createAllCaptions()
-            is HomeEvent.DeleteAllCaptions -> deleteAllCaptions()
+            is HomeEvent.DeleteAllCaptions -> deleteAllCaptions(event)
             is HomeEvent.CaptionContentChanged -> changeCaptionContent(event)
             is HomeEvent.KeywordSelected -> selectKeyword(event)
             else -> throw DisplayableException("Unexpected application state: 44f67cf5f537($event)")

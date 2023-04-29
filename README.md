@@ -29,7 +29,6 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 
 ### TODO list
 * Button to close project
-* Button to create/drop all caption files
 * Convert image to another format
 * Refresh images list from disc
 
@@ -55,7 +54,7 @@ gradlew.bat clean compileKotlin createDistributable
 
 ### Known bugs
 
-* In crop mode right top and left bottom corners are resizing area incorrectly (proportional resize, without Shift)
+* Directory chooser dialog is not modal
 
 ### Useful links
 

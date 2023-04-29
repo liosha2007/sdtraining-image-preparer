@@ -8,6 +8,7 @@ import com.x256n.sdtrainingimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainingimagepreparer.desktop.repository.*
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.about.AboutViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.createproject.CreateProjectViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.deletecaptions.DeleteCaptionsConfirmationViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.settings.SettingsViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.yescancel.YesCancelViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
@@ -34,12 +35,15 @@ object ModulesInjection {
                 configManager = get(),
                 dropProject = get(),
                 deleteImage = get(),
+                createCaptionIfNotExist = get(),
+                deleteCaption = get()
             )
         }
         factoryOf(::AboutViewModel)
         factoryOf(::SettingsViewModel)
         factoryOf(::CreateProjectViewModel)
         factoryOf(::YesCancelViewModel)
+        factoryOf(::DeleteCaptionsConfirmationViewModel)
     }
     val usecaseBeans = module {
         factoryOf(::InitializeProjectUseCase)
@@ -55,6 +59,8 @@ object ModulesInjection {
         factoryOf(::CreateNewAndMergeExistingCaptionsUseCase)
         factoryOf(::DropProjectUseCase)
         factoryOf(::DeleteImageUseCase)
+        factoryOf(::CreateCaptionIfNotExistUseCase)
+        factoryOf(::DeleteCaptionUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)

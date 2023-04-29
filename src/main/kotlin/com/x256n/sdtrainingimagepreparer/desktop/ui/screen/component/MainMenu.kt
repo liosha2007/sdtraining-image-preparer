@@ -76,7 +76,7 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
             Item(
                 "Delete all...",
                 onClick = {
-                    viewModel.sendEvent(HomeEvent.DeleteAllCaptions)
+                    navigator.goTo(Destinations.DeleteCaptionsConfirmation)
                 }
             )
         }

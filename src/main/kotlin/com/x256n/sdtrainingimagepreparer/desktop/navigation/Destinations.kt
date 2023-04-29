@@ -12,6 +12,7 @@ sealed class Destinations : NavigationContext<Destinations> {
             object Nothing : Action()
             data class LoadProject(val projectDirectory: Path) : Action()
             data class YesCancelDialogResult(val targetEvent: Any) : Action()
+            data class DeleteCaptionsConfirmationDialogResult(val isDeleteOnlyEmpty: Boolean) : Action()
         }
     }
 
@@ -23,6 +24,7 @@ sealed class Destinations : NavigationContext<Destinations> {
         val width: Dp = 420.dp,
         val height: Dp = 160.dp,
         val targetDest: Destinations) : Destinations()
+    object DeleteCaptionsConfirmation : Destinations()
     object About : Destinations()
 
     override val initialKey: Destinations

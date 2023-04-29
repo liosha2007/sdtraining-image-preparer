@@ -59,6 +59,9 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
         if (dest is Destinations.Home && dest.action is Destinations.Home.Action.YesCancelDialogResult) {
             viewModel.sendEvent(event = dest.action.targetEvent as HomeEvent)
         }
+        if (dest is Destinations.Home && dest.action is Destinations.Home.Action.DeleteCaptionsConfirmationDialogResult) {
+            viewModel.sendEvent(HomeEvent.DeleteAllCaptions(dest.action.isDeleteOnlyEmpty))
+        }
     }
 
     LaunchedEffect(Unit) {
