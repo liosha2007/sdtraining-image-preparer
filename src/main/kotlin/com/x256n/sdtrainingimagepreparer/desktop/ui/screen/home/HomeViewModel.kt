@@ -173,6 +173,23 @@ class HomeViewModel(
         sendEvent(HomeEvent.ImageSelected(if (state.value.dataIndex == 0) state.value.data.lastIndex else state.value.dataIndex - 1))
     }
 
+    private suspend fun syncImages() {
+        state.value.projectDirectory?.let { projectDirectory ->
+            checkProject(projectDirectory)
+
+            removeIncorrectThumbnails(projectDirectory)
+
+            val data = loadImageModels(projectDirectory)
+            val dataIndex = if (state.value.dataIndex == -1) 0 else state.value.dataIndex
+
+            _state.value = state.value.copy(
+                projectDirectory = projectDirectory,
+                data = data,
+                dataIndex = dataIndex,
+            )
+        }
+    }
+
     // endregion
 
     // region Captions events
@@ -511,7 +528,6 @@ class HomeViewModel(
 
     // endregion
 
-
     /**
      * This method was made this way just to make 'when' smaller so that IDE will not show warning about too deprecated method
      */
@@ -530,7 +546,7 @@ class HomeViewModel(
             // endregion
 
             // region Image events
-            is HomeEvent.DeleteImage, is HomeEvent.ImageSizeChanged, is HomeEvent.ImageSelected, is HomeEvent.ShowNextImage, is HomeEvent.ShowPrevImage -> {
+            is HomeEvent.DeleteImage, is HomeEvent.ImageSizeChanged, is HomeEvent.ImageSelected, is HomeEvent.ShowNextImage, is HomeEvent.ShowPrevImage, is HomeEvent.SyncImages -> {
                 onImageEvent(event)
             }
             // endregion
@@ -584,6 +600,7 @@ class HomeViewModel(
             is HomeEvent.ImageSelected -> changeSelectedImage(event)
             is HomeEvent.ShowNextImage -> showNextImage()
             is HomeEvent.ShowPrevImage -> showPrevImage()
+            is HomeEvent.SyncImages -> syncImages()
             else -> throw DisplayableException("Unexpected application state: c92a533424d4($event)")
         }
     }

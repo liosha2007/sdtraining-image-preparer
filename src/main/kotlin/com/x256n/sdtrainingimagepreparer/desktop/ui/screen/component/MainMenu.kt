@@ -80,6 +80,13 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
                 }
             )
         }
+        Item(
+            "Sync images",
+            mnemonic = 'y',
+            onClick = {
+                viewModel.sendEvent(HomeEvent.SyncImages)
+            }
+        )
     }
 
     Menu("Options") {

@@ -21,11 +21,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainingimagepreparer.desktop.ui.component.pathPainter
+import com.x256n.sdtrainingimagepreparer.desktop.ui.component.simpleVerticalScrollbar
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +47,8 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
         var thumbnailSize by remember { mutableStateOf(IntSize.Zero) }
         LazyColumn(
             modifier = Modifier
+                .weight(1f)
+                .simpleVerticalScrollbar(state = lazyState, isShowAlways = true, width = 1.dp, color = Color.Gray)
                 .fillMaxSize()
                 .onSizeChanged {
                     thumbnailSize = it
@@ -61,7 +65,9 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                 }
 
                 var thumbnailPainter by remember { mutableStateOf<ImageBitmap?>(null) }
-                rememberSaveable(/* Image cropped */state.data, /* Thumbnails scrolled */lazyState.firstVisibleItemIndex) {
+                rememberSaveable(/* Image cropped */state.data, /* Thumbnails scrolled */
+                    lazyState.firstVisibleItemIndex
+                ) {
                     coroutineScope.launch(Dispatchers.Main) {
                         thumbnailPainter = withContext(Dispatchers.IO) { pathPainter(item.thumbnailPath) }
                     }
@@ -93,9 +99,12 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                                 .clickable {
                                     viewModel.sendEvent(HomeEvent.ImageSelected(index))
                                 },
-                        contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(modifier = Modifier
-                                .size(32.dp))
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(32.dp)
+                            )
                         }
                     }
                     Text(
@@ -117,5 +126,14 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                 }
             }
         }
+        Text(
+            modifier = Modifier
+                .padding(horizontal = 5.dp, vertical = 1.dp),
+            text = "Images count: ${state.data.size}",
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+            fontSize = MaterialTheme.typography.body2.fontSize,
+            color = Color.DarkGray
+        )
     }
 }

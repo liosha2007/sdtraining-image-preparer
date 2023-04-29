@@ -24,6 +24,7 @@ sealed class HomeEvent {
     data class ImageSelected(val index: Int) : HomeEvent()
     object ShowNextImage : HomeEvent()
     object ShowPrevImage : HomeEvent()
+    object SyncImages : HomeEvent()
     // endregion
 
     // region Captions events

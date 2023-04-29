@@ -28,9 +28,7 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 * [Koin Dependency Injection Framework](https://github.com/InsertKoinIO/koin)
 
 ### TODO list
-* Button to close project
 * Convert image to another format
-* Refresh images list from disc
 
 ### Compiling and running
 
