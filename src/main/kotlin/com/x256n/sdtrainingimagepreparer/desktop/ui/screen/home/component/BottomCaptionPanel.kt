@@ -21,6 +21,8 @@ fun BottomCaptionPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
         WinTextField(
             modifier = Modifier
                 .fillMaxSize(),
+            fieldModifier = Modifier
+                .fillMaxSize(),
             text = state.captionContent,
             onValueChange = {
                 viewModel.sendEvent(HomeEvent.CaptionContentChanged(it))

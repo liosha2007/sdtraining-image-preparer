@@ -30,8 +30,6 @@ dependencies {
     implementation("com.chrynan.navigation:navigation-core:0.4.0")
     implementation("com.chrynan.navigation:navigation-compose:0.4.0")
 
-    implementation("com.darkrockstudios:mpfilepicker:1.0.0")
-
     implementation("io.insert-koin:koin-core:3.3.3")
 //    implementation("io.insert-koin:koin-core-jvm:3.3.3")
 

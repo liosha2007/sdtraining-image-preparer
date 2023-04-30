@@ -52,7 +52,7 @@ gradlew.bat clean compileKotlin createDistributable
 
 ### Known bugs
 
-* Directory chooser dialog is not modal
+* Preview images are shown as progressbar until scroll
 
 ### Useful links
 

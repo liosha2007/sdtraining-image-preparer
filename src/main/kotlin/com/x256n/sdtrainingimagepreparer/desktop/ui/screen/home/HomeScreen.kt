@@ -21,7 +21,6 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import com.chrynan.navigation.ExperimentalNavigationApi
 import com.chrynan.navigation.compose.goTo
-import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Navigator
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.component.MainMenu
@@ -34,6 +33,7 @@ import java.awt.KeyEventDispatcher
 import java.awt.event.KeyEvent
 import java.nio.file.Path
 import javax.swing.FocusManager
+import javax.swing.JFileChooser
 import kotlin.io.path.ExperimentalPathApi
 
 @ExperimentalPathApi
@@ -116,9 +116,18 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
         }
     }
 
-    DirectoryPicker(state.isShowChooseProjectDirectoryDialog) { projectDirectory ->
-        projectDirectory?.let {
-            viewModel.sendEvent(HomeEvent.LoadProject(Path.of(it)))
+    if (state.isShowChooseProjectDirectoryDialog) {
+        val fileChooser = JFileChooser(System.getProperty("user.home") ?: "/").apply {
+            fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+            dialogTitle = "Select a folder"
+            approveButtonText = "Select"
+//            approveButtonToolTipText = "Select current directory as save destination"
+        }
+        fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+        fileChooser.showOpenDialog(window.rootPane)
+        fileChooser.selectedFile?.let {
+            log.error("result = ${it.path}")
+            viewModel.sendEvent(HomeEvent.LoadProject(Path.of(it.path)))
         }
     }
 

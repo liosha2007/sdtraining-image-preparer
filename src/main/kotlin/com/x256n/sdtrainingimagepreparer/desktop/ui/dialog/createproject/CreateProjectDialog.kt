@@ -22,14 +22,15 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogState
 import com.chrynan.navigation.ExperimentalNavigationApi
 import com.chrynan.navigation.StackDuplicateContentStrategy
-import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Navigator
-import com.x256n.sdtrainingimagepreparer.desktop.regexapplier.desktop.component.WinCheckbox
+import com.x256n.sdtrainingimagepreparer.desktop.ui.component.WinCheckbox
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
 import org.koin.java.KoinJavaComponent
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import javax.swing.JFileChooser
 
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
@@ -76,10 +77,20 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
         }
     ) {
 
-        DirectoryPicker(showImagesDirectoryPicker) { imagesDirectory ->
+
+        if (showImagesDirectoryPicker) {
             showImagesDirectoryPicker = false
-            imagesDirectory?.let {
-                viewModel.onEvent(CreateProjectEvent.ImagesDirectoryChanged(imagesDirectory))
+            val fileChooser = JFileChooser(System.getProperty("user.home") ?: "/").apply {
+                fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                dialogTitle = "Select a folder"
+                approveButtonText = "Select"
+//            approveButtonToolTipText = "Select current directory as save destination"
+            }
+            fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+            fileChooser.showOpenDialog(window.rootPane)
+            fileChooser.selectedFile?.let {
+                log.error("result = ${it.path}")
+                viewModel.onEvent(CreateProjectEvent.ImagesDirectoryChanged(it.path))
             }
         }
 
@@ -96,14 +107,12 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                         .padding(MaterialTheme.spaces.medium)
                 ) {
                     Row {
-                        Text(
+                        WinTextField(
                             modifier = Modifier
-
-                                .padding(horizontal = MaterialTheme.spaces.small),
-                            text = "Images directory: "
-                        )
-                        WinTextField(modifier = Modifier
-                            .weight(1f),
+                                .weight(1f),
+                            fieldModifier = Modifier
+                                .weight(1f),
+                            title = "Images directory: ",
                             singleLine = true,
                             maxLines = 1,
                             text = state.imageDirectory ?: "", onValueChange = {
@@ -249,7 +258,10 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .border(
-                            BorderStroke(1.dp, SolidColor(if (state.errorMessage == null) Color.Transparent else Color.Red))
+                            BorderStroke(
+                                1.dp,
+                                SolidColor(if (state.errorMessage == null) Color.Transparent else Color.Red)
+                            )
                         )
                 ) {
                     Text(

@@ -1,4 +1,4 @@
-package com.x256n.sdtrainingimagepreparer.desktop.regexapplier.desktop.component
+package com.x256n.sdtrainingimagepreparer.desktop.ui.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -28,12 +28,13 @@ fun WinCheckbox(
         CompositionLocalProvider(LocalMinimumTouchTargetEnforcement provides false) {
             Checkbox(
                 modifier = Modifier
-                    .padding(2.dp),
+                    .padding(end = 2.dp),
                 checked = isChecked,
                 enabled = enabled,
                 colors = CheckboxDefaults.colors(
-                    checkedColor = Color.DarkGray,
-                    disabledColor = MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.disabled + 0.1f)
+                    checkedColor = Color.DarkGray.copy(alpha = 0.7f),
+                    disabledColor = MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.disabled + 0.3f),
+                    uncheckedColor = Color.LightGray,
                 ),
                 onCheckedChange = onCheckedChange
             )
@@ -41,10 +42,10 @@ fun WinCheckbox(
         if (content == null) {
             text?.let {
                 Text(
-                    modifier = Modifier
+                    modifier = if (enabled) Modifier
                         .clickable {
                             onCheckedChange(!isChecked)
-                        },
+                        } else Modifier,
                     text = text
                 )
             }

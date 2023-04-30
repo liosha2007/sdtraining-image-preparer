@@ -22,7 +22,7 @@ import com.chrynan.navigation.ExperimentalNavigationApi
 import com.chrynan.navigation.StackDuplicateContentStrategy
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Navigator
-import com.x256n.sdtrainingimagepreparer.desktop.regexapplier.desktop.component.WinCheckbox
+import com.x256n.sdtrainingimagepreparer.desktop.ui.component.WinCheckbox
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
 import org.koin.java.KoinJavaComponent
 import org.slf4j.LoggerFactory

@@ -21,7 +21,7 @@ class ConfigManager {
             }
         }
 
-    val thumbnailsWidth: Int
+    var thumbnailsWidth: Int
         get() {
             key_thumbnailsWidth.apply {
                 if (!config.containsKey(this) || (config[this] as String).isBlank()) {
@@ -30,8 +30,15 @@ class ConfigManager {
                 return (config[this] as String).toInt()
             }
         }
+        set(value) {
+            config[key_thumbnailsWidth] = value.toString()
+            FileOutputStream(propertiesPath.toFile()).use { outputStream ->
+                config.store(outputStream, null)
+                _log.info("Config saved: $propertiesPath\n\tthumbnailsWidth was changed")
+            }
+        }
 
-    val thumbnailsFormat: String
+    var thumbnailsFormat: String
         get() {
             key_thumbnailsFormat.apply {
                 if (!config.containsKey(this) || (config[this] as String).isBlank()) {
@@ -40,8 +47,15 @@ class ConfigManager {
                 return (config[this] as String)
             }
         }
+        set(value) {
+            config[key_thumbnailsFormat] = value
+            FileOutputStream(propertiesPath.toFile()).use { outputStream ->
+                config.store(outputStream, null)
+                _log.info("Config saved: $propertiesPath\n\tthumbnailsFormat was changed")
+            }
+        }
 
-    val keywordsDelimiter: String
+    var keywordsDelimiter: String
         get() {
             key_keywordsDelimiter.apply {
                 if (!config.containsKey(this) || (config[this] as String).isBlank()) {
@@ -50,14 +64,28 @@ class ConfigManager {
                 return (config[this] as String)
             }
         }
+        set(value) {
+            config[key_keywordsDelimiter] = value
+            FileOutputStream(propertiesPath.toFile()).use { outputStream ->
+                config.store(outputStream, null)
+                _log.info("Config saved: $propertiesPath\n\tkeywordsDelimiter was changed")
+            }
+        }
 
-    val openLastProjectOnStart: Boolean
+    var openLastProjectOnStart: Boolean
         get() {
             key_openLastProjectOnStart.apply {
                 if (!config.containsKey(this) || (config[this] as String).isBlank()) {
                     config[this] = "true"
                 }
                 return (config[this] as String).toBoolean()
+            }
+        }
+        set(value) {
+            config[key_openLastProjectOnStart] = value.toString()
+            FileOutputStream(propertiesPath.toFile()).use { outputStream ->
+                config.store(outputStream, null)
+                _log.info("Config saved: $propertiesPath\n\topenLastProjectOnStart was changed")
             }
         }
 
@@ -78,7 +106,7 @@ class ConfigManager {
             }
         }
 
-    val supportedImageFormats: List<String>
+    var supportedImageFormats: List<String>
         get() {
             key_supportedImageFormats.apply {
                 if (!config.containsKey(this) || (config[this] as String).isBlank()) {
@@ -87,14 +115,28 @@ class ConfigManager {
                 return (config[this] as String).split(',').map { it.trim() }
             }
         }
+        set(value) {
+            config[key_supportedImageFormats] = value.filter { it.isNotBlank() }.joinToString(",") { it.trim() }
+            FileOutputStream(propertiesPath.toFile()).use { outputStream ->
+                config.store(outputStream, null)
+                _log.info("Config saved: $propertiesPath\n\tsupportedImageFormats was changed")
+            }
+        }
 
-    val supportedCaptionExtensions: List<String>
+    var supportedCaptionExtensions: List<String>
         get() {
             key_supportedCaptionExtensions.apply {
                 if (!config.containsKey(this) || (config[this] as String).isBlank()) {
                     config[this] = "txt,caption"
                 }
                 return (config[this] as String).split(',').map { it.trim() }
+            }
+        }
+        set(value) {
+            config[key_supportedCaptionExtensions] = value.filter { it.isNotBlank() }.joinToString(",") { it.trim() }
+            FileOutputStream(propertiesPath.toFile()).use { outputStream ->
+                config.store(outputStream, null)
+                _log.info("Config saved: $propertiesPath\n\tsupportedCaptionExtensions was changed")
             }
         }
 

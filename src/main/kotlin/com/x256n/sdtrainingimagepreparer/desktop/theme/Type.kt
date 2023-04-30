@@ -1,6 +1,7 @@
 package com.x256n.sdtrainingimagepreparer.desktop.theme
 
 import androidx.compose.material.Typography
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -11,11 +12,11 @@ val Typography = Typography(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        color = Blue
+        color = Color.Black.copy(alpha = 0.9f)
     ),
     body2 = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 11.sp,
-        color = BlueLight
+        color = Color.Black.copy(alpha = 0.8f)
     )
 )
