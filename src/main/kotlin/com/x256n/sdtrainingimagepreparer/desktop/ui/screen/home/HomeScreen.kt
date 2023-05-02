@@ -107,6 +107,9 @@ fun FrameWindowScope.HomeScreen(navigator: Navigator<Destinations>, dest: Destin
                         viewModel.sendEvent(HomeEvent.DeletePressed)
                     }
                     true
+                } else if (keyEvent.keyCode == KeyEvent.VK_F5) {
+                    viewModel.sendEvent(HomeEvent.SyncImages)
+                    true
                 } else false
             }
             FocusManager.getCurrentManager().addKeyEventDispatcher(keyEventDispatcher)
