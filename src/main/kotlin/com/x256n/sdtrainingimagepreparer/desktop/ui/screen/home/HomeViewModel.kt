@@ -302,6 +302,16 @@ class HomeViewModel(
         )
     }
 
+    private fun changeAreaToMax() {
+        val imageWidth = state.value.realImageSize.width
+        val imageHeight = state.value.realImageSize.height
+
+        _state.value = state.value.copy(
+            cropOffset = Offset(0f, 0f),
+            cropSize = Size(min(imageWidth, imageHeight), min(imageWidth, imageHeight))
+        )
+    }
+
     private fun changeCropRectangle(event: HomeEvent.CropRectChanged) {
         val imageScale = state.value.imageScale
         val realImageSize = state.value.realImageSize
@@ -558,7 +568,7 @@ class HomeViewModel(
             // endregion
 
             // region Toolbar events
-            is HomeEvent.EditModeClicked, is HomeEvent.CropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.CropRectChanged, is HomeEvent.CropActiveTypeChanged -> {
+            is HomeEvent.EditModeClicked, is HomeEvent.CropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.ChangeAreaToMax, is HomeEvent.CropRectChanged, is HomeEvent.CropActiveTypeChanged -> {
                 onToolbarEvent(event)
             }
             // endregion
@@ -620,6 +630,7 @@ class HomeViewModel(
             is HomeEvent.EditModeClicked -> toggleEditMode(event)
             is HomeEvent.CropApplyClicked -> cropResizeImage()
             is HomeEvent.ChangeAreaToSize -> changeAreaSize(event)
+            is HomeEvent.ChangeAreaToMax -> changeAreaToMax()
             is HomeEvent.CropRectChanged -> changeCropRectangle(event)
             is HomeEvent.CropActiveTypeChanged -> changeCropActiveType(event)
             else -> throw DisplayableException("Unexpected application state: 7c0e742c3764($event)")

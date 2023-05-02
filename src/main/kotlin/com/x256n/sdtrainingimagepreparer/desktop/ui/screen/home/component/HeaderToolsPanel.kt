@@ -70,6 +70,17 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destina
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
+                        viewModel.sendEvent(HomeEvent.ChangeAreaToMax)
+                    }
+                ) {
+                    Text(
+                        text = "max",
+                        fontSize = MaterialTheme.typography.body2.fontSize,
+                    )
+                }
+                WinButton(modifier = Modifier
+                    .fillMaxHeight(),
+                    onClick = {
                         viewModel.sendEvent(HomeEvent.EditModeClicked(false))
                     }
                 ) {

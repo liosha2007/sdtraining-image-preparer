@@ -38,6 +38,7 @@ sealed class HomeEvent {
     data class EditModeClicked(val enable: Boolean) : HomeEvent()
     object CropApplyClicked : HomeEvent()
     data class ChangeAreaToSize(val targetSize: Float) : HomeEvent()
+    object ChangeAreaToMax : HomeEvent()
     data class CropRectChanged(val offset: Offset, val isShiftPressed: Boolean) : HomeEvent()
     data class CropActiveTypeChanged(val position: Offset?) : HomeEvent()
     // endregion
