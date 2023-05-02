@@ -28,12 +28,10 @@ The application is aimed to prepare images for training Stable Diffusion (using 
 * [Koin Dependency Injection Framework](https://github.com/InsertKoinIO/koin)
 
 ### TODO list
-* Convert image to another format
 * Default position of crop rectangle must be in the center of an image after opening next image
 * Button to make square in crop mode
 * Different sorting of keywords on right panel
 * Adding keywords to all caption files
-* Convert all images to format that is configured when the project was created
 
 ### Compiling and running
 

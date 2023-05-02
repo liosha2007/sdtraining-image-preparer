@@ -119,7 +119,7 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                                     .background(Color.Green)
                                     .fillMaxSize(),
                                 painter = BitmapPainter(image),
-                                contentDescription = state[state.dataIndex].imagePath.name,
+                                contentDescription = state[if (state.dataIndex > state.data.lastIndex) state.data.lastIndex else state.dataIndex].imagePath.name,
                                 contentScale = ContentScale.Fit
                             )
                             if (state.screenMode == ScreenMode.ResizeCrop) {
