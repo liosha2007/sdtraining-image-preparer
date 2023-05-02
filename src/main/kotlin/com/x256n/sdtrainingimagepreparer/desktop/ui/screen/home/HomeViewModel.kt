@@ -139,7 +139,7 @@ class HomeViewModel(
             data = state.value.data.map {
                 convertImage(it)
             },
-
+            status = Status.Info("Images converted successfully.")
         )
     }
 
@@ -666,10 +666,10 @@ class HomeViewModel(
     }
 
     override fun showError(message: String) {
-        _state.value = state.value.copy(errorMessage = message)
+        _state.value = state.value.copy(status = Status.Error(message))
     }
 
     override fun hideError() {
-        _state.value = state.value.copy(errorMessage = null)
+        _state.value = state.value.copy(status = Status.None)
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.Status
 import kotlin.io.path.ExperimentalPathApi
 
 @Composable
@@ -48,7 +49,7 @@ fun FootherStatusPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                 modifier = Modifier
                     .wrapContentWidth(),
                 fontSize = MaterialTheme.typography.body2.fontSize,
-                text = state.statusText,
+                text = state.imageDetails,
                 color = Color.Black,
                 maxLines = 1
             )
@@ -63,8 +64,8 @@ fun FootherStatusPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) 
                 modifier = Modifier
                     .wrapContentWidth(),
                 fontSize = MaterialTheme.typography.body2.fontSize,
-                text = if (state.errorMessage == null) "" else "Error: " + state.errorMessage,
-                color = Color.Red,
+                text = if (state.status is Status.Error) "Error: " + state.status.text else state.status.text,
+                color = if (state.status is Status.Error) Color.Red else Color.Black,
                 maxLines = 1
             )
         }

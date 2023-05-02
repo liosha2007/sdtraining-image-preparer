@@ -9,7 +9,7 @@ import java.nio.file.Path
 
 data class HomeState(
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    val status: Status = Status.None,
     val projectDirectory: Path? = null,
     val isShowChooseProjectDirectoryDialog: Boolean = false,
     val data: List<ImageModel> = emptyList(),
@@ -36,7 +36,7 @@ data class HomeState(
 
     val hasKeywords get() = keywordList.isNotEmpty()
 
-    val statusText
+    val imageDetails
         get() =
             if (hasData) "${this[dataIndex].imageSize.width.toInt()} x ${this[dataIndex].imageSize.height.toInt()} - ${this[dataIndex].imageName}" else ""
 
@@ -85,4 +85,10 @@ sealed class ActiveType {
             }
         }
     }
+}
+
+sealed class Status(val text: String) {
+    object None: Status("")
+    class Error(data: String): Status(data)
+    class Info(data: String): Status(data)
 }
