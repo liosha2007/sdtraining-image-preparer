@@ -20,6 +20,7 @@ sealed class HomeEvent {
 
     // region Image events
     object DeleteImage : HomeEvent()
+    object ConvertImages : HomeEvent()
     data class ImageSizeChanged(val imageSize: Size, val imageScale: Float) : HomeEvent()
     data class ImageSelected(val index: Int) : HomeEvent()
     object ShowNextImage : HomeEvent()

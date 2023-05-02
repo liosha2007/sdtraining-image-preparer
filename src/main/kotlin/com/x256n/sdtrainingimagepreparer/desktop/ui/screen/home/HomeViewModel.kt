@@ -35,6 +35,7 @@ class HomeViewModel(
     private val deleteImage: DeleteImageUseCase,
     private val createCaptionIfNotExist: CreateCaptionIfNotExistUseCase,
     private val deleteCaption: DeleteCaptionUseCase,
+    private val convertImage: ConvertImageUseCase,
 ) : BaseViewModel<HomeState>(emptyState = HomeState()), KoinComponent {
 
     // region Application events
@@ -130,6 +131,15 @@ class HomeViewModel(
                 this.removeAt(dataIndex)
             },
             dataIndex = if (dataIndex > state.value.data.lastIndex) state.value.data.lastIndex else dataIndex
+        )
+    }
+
+    private suspend fun convertAllImages() {
+        _state.value = state.value.copy(
+            data = state.value.data.map {
+                convertImage(it)
+            },
+
         )
     }
 
@@ -556,7 +566,7 @@ class HomeViewModel(
             // endregion
 
             // region Image events
-            is HomeEvent.DeleteImage, is HomeEvent.ImageSizeChanged, is HomeEvent.ImageSelected, is HomeEvent.ShowNextImage, is HomeEvent.ShowPrevImage, is HomeEvent.SyncImages -> {
+            is HomeEvent.DeleteImage, is HomeEvent.ConvertImages, is HomeEvent.ImageSizeChanged, is HomeEvent.ImageSelected, is HomeEvent.ShowNextImage, is HomeEvent.ShowPrevImage, is HomeEvent.SyncImages -> {
                 onImageEvent(event)
             }
             // endregion
@@ -606,6 +616,7 @@ class HomeViewModel(
 
         when (event) {
             is HomeEvent.DeleteImage -> deleteSelectedImage()
+            is HomeEvent.ConvertImages -> convertAllImages()
             is HomeEvent.ImageSizeChanged -> changeImageSizeOnScreen(event)
             is HomeEvent.ImageSelected -> changeSelectedImage(event)
             is HomeEvent.ShowNextImage -> showNextImage()

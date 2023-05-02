@@ -59,32 +59,50 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
         )
     }
 
-    Menu("Actions") {
+    Menu("Images") {
         Item(
             "Delete image...",
+            mnemonic = 'd',
             onClick = {
                 viewModel.sendEvent(HomeEvent.DeleteImage)
             }
         )
-        Menu("Caption files") {
-            Item(
-                "Create all...",
-                onClick = {
-                    viewModel.sendEvent(HomeEvent.CreateAllCaptions)
-                }
-            )
-            Item(
-                "Delete all...",
-                onClick = {
-                    navigator.goTo(Destinations.DeleteCaptionsConfirmation)
-                }
-            )
-        }
         Item(
-            "Sync images",
-            mnemonic = 'y',
+            "Convert all...",
+            mnemonic = 'c',
+            onClick = {
+                navigator.goTo(
+                    Destinations.YesCancel(
+                        message = "All images will be converted to format that was specified in create project dialog.\nSource images will be deleted. Convert images?",
+                        targetDest = Destinations.Home(
+                            action = Destinations.Home.Action.YesCancelDialogResult(targetEvent = HomeEvent.ConvertImages)
+                        )
+                    )
+                )
+            }
+        )
+        Item(
+            "Sync images (F5)",
+            mnemonic = 's',
             onClick = {
                 viewModel.sendEvent(HomeEvent.SyncImages)
+            }
+        )
+    }
+
+    Menu("Captions") {
+        Item(
+            "Create all caption files",
+            mnemonic = 'c',
+            onClick = {
+                viewModel.sendEvent(HomeEvent.CreateAllCaptions)
+            }
+        )
+        Item(
+            "Delete all caption files...",
+            mnemonic = 'd',
+            onClick = {
+                navigator.goTo(Destinations.DeleteCaptionsConfirmation)
             }
         )
     }
@@ -92,7 +110,7 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
     Menu("Options") {
         Item(
             "Settings...",
-            mnemonic = 'S',
+            mnemonic = 's',
             onClick = {
                 navigator.goTo(Destinations.Settings)
             }

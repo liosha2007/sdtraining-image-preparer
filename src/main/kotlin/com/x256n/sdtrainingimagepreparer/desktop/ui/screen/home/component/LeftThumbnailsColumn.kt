@@ -68,8 +68,13 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                 rememberSaveable(/* Image cropped */state.data, /* Thumbnails scrolled */
                     lazyState.firstVisibleItemIndex
                 ) {
-                    coroutineScope.launch(Dispatchers.Main) {
-                        thumbnailPainter = withContext(Dispatchers.IO) { pathPainter(item.thumbnailPath) }
+                    try {
+                        coroutineScope.launch(Dispatchers.Main) {
+                            thumbnailPainter = withContext(Dispatchers.IO) { pathPainter(item.thumbnailPath) }
+                        }
+                    } catch (e: Exception) {
+                        log.error("Can't load thumbnail image: '${item.thumbnailPath}'", e)
+                        thumbnailPainter = null
                     }
                 }
 

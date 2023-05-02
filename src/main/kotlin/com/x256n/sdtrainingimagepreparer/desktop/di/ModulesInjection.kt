@@ -36,7 +36,8 @@ object ModulesInjection {
                 dropProject = get(),
                 deleteImage = get(),
                 createCaptionIfNotExist = get(),
-                deleteCaption = get()
+                deleteCaption = get(),
+                convertImage = get()
             )
         }
         factoryOf(::AboutViewModel)
@@ -61,6 +62,7 @@ object ModulesInjection {
         factoryOf(::DeleteImageUseCase)
         factoryOf(::CreateCaptionIfNotExistUseCase)
         factoryOf(::DeleteCaptionUseCase)
+        factoryOf(::ConvertImageUseCase)
     }
     val managerBeans = module {
         singleOf(::ConfigManager)
