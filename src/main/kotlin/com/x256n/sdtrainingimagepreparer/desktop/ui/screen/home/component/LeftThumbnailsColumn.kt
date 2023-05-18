@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalPathApi::class, ExperimentalPathApi::class)
-
 package com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.component
 
 import androidx.compose.foundation.Image
@@ -29,7 +27,7 @@ import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainingimagepreparer.desktop.ui.component.pathPainter
 import com.x256n.sdtrainingimagepreparer.desktop.ui.component.simpleVerticalScrollbar
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
-import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,9 +35,13 @@ import org.slf4j.LoggerFactory
 import kotlin.io.path.ExperimentalPathApi
 
 @Composable
-fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, lazyState: LazyListState) {
+fun LeftThumbnailsPanel(
+    modifier: Modifier = Modifier,
+    state: HomeState,
+    sendEvent: (HomeEvent) -> Unit = {},
+    lazyState: LazyListState
+) {
     val log = remember { LoggerFactory.getLogger("LeftThumbnailsPanel") }
-    val state by viewModel.state
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = modifier
@@ -90,7 +92,7 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                                 .fillMaxWidth()
                                 .height((thumbnailSize.width / 1.7).dp)
                                 .clickable {
-                                    viewModel.sendEvent(HomeEvent.ImageSelected(index))
+                                    sendEvent(HomeEvent.ImageSelected(index))
                                 },
                             painter = BitmapPainter(thumbnailPainter!!),
                             contentDescription = "Image $index",
@@ -102,7 +104,7 @@ fun LeftThumbnailsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel,
                                 .fillMaxWidth()
                                 .height((thumbnailSize.width / 1.7).dp)
                                 .clickable {
-                                    viewModel.sendEvent(HomeEvent.ImageSelected(index))
+                                    sendEvent(HomeEvent.ImageSelected(index))
                                 },
                             contentAlignment = Alignment.Center
                         ) {

@@ -1,5 +1,6 @@
-@file:OptIn(ExperimentalPathApi::class, ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class,
-    ExperimentalNavigationApi::class
+@file:OptIn(
+    ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class,
+    ExperimentalNavigationApi::class, ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class
 )
 
 package com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.component
@@ -9,24 +10,26 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chrynan.navigation.ExperimentalNavigationApi
-import com.chrynan.navigation.compose.goTo
+import com.chrynan.navigation.StackDuplicateContentStrategy
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Destinations
-import com.x256n.sdtrainingimagepreparer.desktop.navigation.Navigator
+import com.x256n.sdtrainingimagepreparer.desktop.navigation.INavigator
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
-import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeState
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.ScreenMode
-import kotlin.io.path.ExperimentalPathApi
 
 @Composable
-fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destinations>, viewModel: HomeViewModel) {
-    val state by viewModel.state
+fun HeaderToolsPanel(
+    modifier: Modifier = Modifier,
+    navigator: INavigator<Destinations, StackDuplicateContentStrategy>,
+    state: HomeState,
+    sendEvent: (HomeEvent) -> Unit = {}
+) {
     Row(
         modifier = modifier
             .padding(start = 3.dp, bottom = 3.dp),
@@ -37,7 +40,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destina
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.sendEvent(HomeEvent.CropApplyClicked)
+                        sendEvent(HomeEvent.CropApplyClicked)
                     }
                 ) {
                     Text(
@@ -48,7 +51,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destina
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.sendEvent(HomeEvent.ChangeAreaToSize(512f))
+                        sendEvent(HomeEvent.ChangeAreaToSize(512f))
                     }
                 ) {
                     Text(
@@ -59,7 +62,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destina
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.sendEvent(HomeEvent.ChangeAreaToSize(768f))
+                        sendEvent(HomeEvent.ChangeAreaToSize(768f))
                     }
                 ) {
                     Text(
@@ -70,7 +73,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destina
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.sendEvent(HomeEvent.ChangeAreaToMax)
+                        sendEvent(HomeEvent.ChangeAreaToMax)
                     }
                 ) {
                     Text(
@@ -81,7 +84,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destina
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.sendEvent(HomeEvent.EditModeClicked(false))
+                        sendEvent(HomeEvent.EditModeClicked(false))
                     }
                 ) {
                     Text(
@@ -93,7 +96,7 @@ fun HeaderToolsPanel(modifier: Modifier = Modifier, navigator: Navigator<Destina
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),
                     onClick = {
-                        viewModel.sendEvent(HomeEvent.EditModeClicked(true))
+                        sendEvent(HomeEvent.EditModeClicked(true))
                     }
                 ) {
                     Text(

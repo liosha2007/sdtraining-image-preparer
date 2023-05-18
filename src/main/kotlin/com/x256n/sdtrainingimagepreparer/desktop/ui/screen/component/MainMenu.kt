@@ -7,13 +7,20 @@ import com.chrynan.navigation.compose.ComposeNavigatorByKey
 import com.chrynan.navigation.compose.goTo
 import com.x256n.sdtrainingimagepreparer.desktop.navigation.Destinations
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
-import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
 import kotlin.io.path.ExperimentalPathApi
 
 @ExperimentalPathApi
 @ExperimentalNavigationApi
 @Composable
-fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destinations>, viewModel: HomeViewModel) {
+fun MenuBarScope.MainMenu(
+    navigator: ComposeNavigatorByKey<Destinations, Destinations>,
+    onOpenProject: () -> Unit = {},
+    onCloseProject: () -> Unit = {},
+    onExit: () -> Unit = {},
+    onDeleteImage: () -> Unit = {},
+    onSyncImages: () -> Unit = {},
+    onCreateAllCaptions: () -> Unit = {},
+) {
     Menu("File") {
         Item(
             "New project...",
@@ -25,16 +32,12 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
         Item(
             "Open project...",
             mnemonic = 'O',
-            onClick = {
-                viewModel.sendEvent(HomeEvent.OpenProject)
-            }
+            onClick = onOpenProject
         )
         Item(
             "Close project",
             mnemonic = 'C',
-            onClick = {
-                viewModel.sendEvent(HomeEvent.CloseProject)
-            }
+            onClick = onCloseProject
         )
         Item(
             "Drop project...",
@@ -53,9 +56,7 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
         Item(
             "Exit",
             mnemonic = 'Q',
-            onClick = {
-                viewModel.sendEvent(HomeEvent.Exit())
-            }
+            onClick = onExit
         )
     }
 
@@ -63,9 +64,7 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
         Item(
             "Delete image...",
             mnemonic = 'd',
-            onClick = {
-                viewModel.sendEvent(HomeEvent.DeleteImage)
-            }
+            onClick = onDeleteImage
         )
         Item(
             "Convert all...",
@@ -84,9 +83,7 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
         Item(
             "Sync images (F5)",
             mnemonic = 's',
-            onClick = {
-                viewModel.sendEvent(HomeEvent.SyncImages)
-            }
+            onClick = onSyncImages
         )
     }
 
@@ -94,9 +91,7 @@ fun MenuBarScope.MainMenu(navigator: ComposeNavigatorByKey<Destinations, Destina
         Item(
             "Create all caption files",
             mnemonic = 'c',
-            onClick = {
-                viewModel.sendEvent(HomeEvent.CreateAllCaptions)
-            }
+            onClick = onCreateAllCaptions
         )
         Item(
             "Delete all caption files...",

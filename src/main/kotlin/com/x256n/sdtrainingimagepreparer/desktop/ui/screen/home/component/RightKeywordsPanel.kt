@@ -16,12 +16,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeState
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
 import kotlin.io.path.ExperimentalPathApi
 
 @Composable
-fun RightKeywordsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, lazyState: LazyListState) {
-    val state by viewModel.state
+fun RightKeywordsPanel(
+    modifier: Modifier = Modifier,
+    state: HomeState,
+    sendEvent: (HomeEvent) -> Unit = {},
+    lazyState: LazyListState
+) {
     Column(
         modifier = Modifier
     ) {
@@ -42,7 +47,7 @@ fun RightKeywordsPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                     modifier = modifier
                         .fillMaxWidth()
                         .clickable {
-                            viewModel.sendEvent(HomeEvent.KeywordSelected(item))
+                            sendEvent(HomeEvent.KeywordSelected(item))
                         },
                 ) {
                     Text(

@@ -57,6 +57,7 @@ gradlew.bat clean compileKotlin createDistributable
 
 * Preview images are shown as progressbar until scroll
 * Opening next image when app is focused after some pause
+* After clicking 'File' -> 'Open project' and close chose directory dialog, the dialog will appear when mustn't
 
 ### Useful links
 

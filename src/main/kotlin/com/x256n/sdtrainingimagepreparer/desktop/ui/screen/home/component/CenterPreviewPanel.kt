@@ -1,6 +1,12 @@
 @file:OptIn(
-    ExperimentalPathApi::class, ExperimentalPathApi::class, ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class,
-    ExperimentalTextApi::class, ExperimentalPathApi::class, ExperimentalPathApi::class, ExperimentalComposeUiApi::class,
+    ExperimentalPathApi::class,
+    ExperimentalPathApi::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalComposeUiApi::class,
+    ExperimentalTextApi::class,
+    ExperimentalPathApi::class,
+    ExperimentalPathApi::class,
+    ExperimentalComposeUiApi::class,
     ExperimentalComposeUiApi::class
 )
 
@@ -40,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.x256n.sdtrainingimagepreparer.desktop.ui.component.pathPainter
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
-import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeState
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.ScreenMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,9 +56,12 @@ import kotlin.io.path.name
 import kotlin.math.round
 
 @Composable
-fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, isShiftPressed: Boolean) {
+fun CenterPreviewPanel(
+    modifier: Modifier = Modifier,
+    state: HomeState,
+    sendEvent: (HomeEvent) -> Unit = {}, isShiftPressed: Boolean
+) {
     val log = remember { LoggerFactory.getLogger("CenterPreviewPanel") }
-    val state by viewModel.state
     val coroutineScope = rememberCoroutineScope()
     var mainImagePainter by remember { mutableStateOf<ImageBitmap?>(null) }
     val textMeasure = rememberTextMeasurer()
@@ -93,7 +102,7 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                             imageWidth = (imageHeight * imageRatio).toInt()
                         }
                         previewSize = IntSize(imageWidth, imageHeight)
-                        viewModel.sendEvent(
+                        sendEvent(
                             HomeEvent.ImageSizeChanged(
                                 imageSize = Size(
                                     image.width.toFloat(),
@@ -127,13 +136,13 @@ fun CenterPreviewPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel, 
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .onPointerEvent(PointerEventType.Press) {
-                                            viewModel.sendEvent(HomeEvent.CropActiveTypeChanged(this.currentEvent.changes.first().position))
+                                            sendEvent(HomeEvent.CropActiveTypeChanged(this.currentEvent.changes.first().position))
                                         }
                                         .onPointerEvent(PointerEventType.Release) {
-                                            viewModel.sendEvent(HomeEvent.CropActiveTypeChanged(null))
+                                            sendEvent(HomeEvent.CropActiveTypeChanged(null))
                                         }
                                         .onDrag { offset ->
-                                            viewModel.sendEvent(
+                                            sendEvent(
                                                 HomeEvent.CropRectChanged(
                                                     offset = offset,
                                                     isShiftPressed = isShiftPressed

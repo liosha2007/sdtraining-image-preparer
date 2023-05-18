@@ -9,19 +9,20 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
-import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeState
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.Status
 import kotlin.io.path.ExperimentalPathApi
 
 @Composable
-fun FootherStatusPanel(modifier: Modifier = Modifier, viewModel: HomeViewModel) {
-    val state by viewModel.state
+fun FootherStatusPanel(
+    modifier: Modifier = Modifier,
+    state: HomeState,
+) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
