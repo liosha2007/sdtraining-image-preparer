@@ -1,27 +1,18 @@
 @file:OptIn(
     ExperimentalPathApi::class,
-    ExperimentalPathApi::class,
     ExperimentalFoundationApi::class,
     ExperimentalComposeUiApi::class,
     ExperimentalTextApi::class,
-    ExperimentalPathApi::class,
-    ExperimentalPathApi::class,
-    ExperimentalComposeUiApi::class,
-    ExperimentalComposeUiApi::class
 )
 
 package com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.component
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.onDrag
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -44,6 +35,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.onExternalDrag
+import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
 import com.x256n.sdtrainingimagepreparer.desktop.ui.component.pathPainter
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeState
@@ -76,6 +69,34 @@ fun CenterPreviewPanel(
 
     Row(
         modifier = modifier
+            .onExternalDrag(enabled = state.projectDirectory == null,
+//                        onDragStart = { externalDragValue ->
+//                            isDroppable = externalDragValue.dragData is androidx.compose.ui.DragData.Text
+//                        },
+//                        onDragExit = {
+//                            isDroppable = false
+//                        },
+                onDrop = { externalDragValue ->
+//                            isDroppable = false
+                    val dragData = externalDragValue.dragData
+                    if (dragData is androidx.compose.ui.DragData.FilesList) {
+                        sendEvent(
+                            HomeEvent.FilesDropped(dragData.readFiles())
+                        )
+                    }
+                }
+            )
+            .combinedClickable(
+                enabled = state.projectDirectory == null,
+                onClick = {},
+                onDoubleClick = {
+                    sendEvent(
+                        HomeEvent.Open()
+                    )
+                }
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
         if (state.data.isNotEmpty()) {
             if (mainImagePainter == null) {
@@ -190,9 +211,9 @@ fun CenterPreviewPanel(
                                             color = if (state.cropSize.width < 512 || state.cropSize.height < 512) Color.Red else Color.Black
                                         ),
                                         topLeft = Offset(scaledAreaRect.left + 10, scaledAreaRect.top + 10),
-                                        maxSize = IntSize(
-                                            scaledAreaRect.width.toInt(),
-                                            scaledAreaRect.height.toInt()
+                                        size = Size(
+                                            scaledAreaRect.width,
+                                            scaledAreaRect.height
                                         )
                                     )
                                 }
@@ -200,6 +221,26 @@ fun CenterPreviewPanel(
                         }
                     }
                 }
+            }
+        } else if (state.projectDirectory == null) {
+            Text(
+                text = "Double click to open directory or just drop files here...",
+                color = Color.Gray
+            )
+        } else if (!state.hasData) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Project does not have any images.",
+                    color = Color.Gray
+                )
+                Spacer(
+                    modifier = Modifier
+                        .height(MaterialTheme.spaces.small)
+                )
+                Text(
+                    text = "Add images to directory and press F5.",
+                    color = Color.Gray
+                )
             }
         }
     }

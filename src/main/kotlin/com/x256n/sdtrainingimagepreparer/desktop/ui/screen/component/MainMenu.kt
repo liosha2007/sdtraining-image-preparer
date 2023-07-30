@@ -14,6 +14,7 @@ import kotlin.io.path.ExperimentalPathApi
 @Composable
 fun MenuBarScope.MainMenu(
     navigator: ComposeNavigatorByKey<Destinations, Destinations>,
+    onCreateProject: () -> Unit = {},
     onOpenProject: () -> Unit = {},
     onCloseProject: () -> Unit = {},
     onExit: () -> Unit = {},
@@ -25,12 +26,10 @@ fun MenuBarScope.MainMenu(
         Item(
             "New project...",
             mnemonic = 'N',
-            onClick = {
-                navigator.goTo(Destinations.CreateProject)
-            }
+            onClick = onCreateProject
         )
         Item(
-            "Open project...",
+            "Open...",
             mnemonic = 'O',
             onClick = onOpenProject
         )
@@ -40,12 +39,12 @@ fun MenuBarScope.MainMenu(
             onClick = onCloseProject
         )
         Item(
-            "Drop project...",
+            "Clear project...",
             mnemonic = 'D',
             onClick = {
                 navigator.goTo(
                     Destinations.YesCancel(
-                        message = "Project files and config will be deleted.\nImages and captions will NOT be affected. Drop project?",
+                        message = "Project files and config will be deleted.\nImages and captions will NOT be affected. Clear project?",
                         targetDest = Destinations.Home(
                             action = Destinations.Home.Action.YesCancelDialogResult(targetEvent = HomeEvent.DropProject)
                         )

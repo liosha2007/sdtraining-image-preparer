@@ -11,7 +11,6 @@ data class HomeState(
     val isLoading: Boolean = false,
     val status: Status = Status.None,
     val projectDirectory: Path? = null,
-    val isShowChooseProjectDirectoryDialog: Boolean = false,
     val data: List<ImageModel> = emptyList(),
     val dataIndex: Int = -1,
     val captionContent: String = "",

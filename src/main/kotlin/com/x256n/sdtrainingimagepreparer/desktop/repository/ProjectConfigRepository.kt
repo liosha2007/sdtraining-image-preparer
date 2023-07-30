@@ -150,7 +150,7 @@ class ProjectConfigRepositoryImpl(
         configPath.assertExist(::ProjectConfigNotFoundException, isFile = true)
     }
 
-    private suspend fun Path.assertExist(exceptionFactory: (path: Path) -> sdtrainingimagepreparerException, isFile: Boolean = false) {
+    private suspend fun Path.assertExist(exceptionFactory: (path: Path) -> SDTrainingImagePreparerException, isFile: Boolean = false) {
         withContext(dispatcherProvider.io) {
             if (Files.notExists(this@assertExist)
                 || ((isFile && !Files.isRegularFile(this@assertExist))
@@ -161,7 +161,7 @@ class ProjectConfigRepositoryImpl(
         }
     }
 
-    private suspend fun Path.assertNotExist(exceptionFactory: (path: Path) -> sdtrainingimagepreparerException) {
+    private suspend fun Path.assertNotExist(exceptionFactory: (path: Path) -> SDTrainingImagePreparerException) {
         withContext(dispatcherProvider.io) {
             if (Files.exists(this@assertNotExist)) {
                 throw exceptionFactory(this@assertNotExist)

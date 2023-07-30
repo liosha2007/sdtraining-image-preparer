@@ -37,7 +37,7 @@ import javax.swing.JFileChooser
 @ExperimentalComposeUiApi
 @ExperimentalNavigationApi
 @Composable
-fun CreateProjectDialog(navigator: Navigator<Destinations>) {
+fun CreateProjectDialog(navigator: Navigator<Destinations>, dest: Destinations.CreateProject) {
     val log = remember { LoggerFactory.getLogger("CreateProjectScreen") }
     val viewModel by remember {
         KoinJavaComponent.inject<CreateProjectViewModel>(CreateProjectViewModel::class.java)
@@ -47,6 +47,9 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
 
     LaunchedEffect(Unit) {
         viewModel.onEvent(CreateProjectEvent.CreateProjectDialogDisplayed)
+        dest.path?.let {
+            viewModel.onEvent(CreateProjectEvent.ImagesDirectoryChanged(it.toString()))
+        }
     }
 
     rememberSaveable(state.isProjectCreated) {
@@ -79,18 +82,22 @@ fun CreateProjectDialog(navigator: Navigator<Destinations>) {
 
 
         if (showImagesDirectoryPicker) {
-            showImagesDirectoryPicker = false
-            val fileChooser = JFileChooser(System.getProperty("user.home") ?: "/").apply {
+            JFileChooser(System.getProperty("user.home") ?: "/").apply {
                 fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
                 dialogTitle = "Select a folder"
                 approveButtonText = "Select"
 //            approveButtonToolTipText = "Select current directory as save destination"
-            }
-            fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-            fileChooser.showOpenDialog(window.rootPane)
-            fileChooser.selectedFile?.let {
-                log.error("result = ${it.path}")
-                viewModel.onEvent(CreateProjectEvent.ImagesDirectoryChanged(it.path))
+                fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                val result = showOpenDialog(window.rootPane)
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    showImagesDirectoryPicker = false
+                    selectedFile?.let {
+                        log.error("result = ${it}")
+                        viewModel.onEvent(CreateProjectEvent.ImagesDirectoryChanged(it.path))
+                    }
+                } else {
+                    showImagesDirectoryPicker = false
+                }
             }
         }
 

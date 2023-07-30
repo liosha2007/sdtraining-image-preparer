@@ -12,11 +12,12 @@ sealed class Destinations : NavigationContext<Destinations> {
             object Nothing : Action()
             data class LoadProject(val projectDirectory: Path) : Action()
             data class YesCancelDialogResult(val targetEvent: Any) : Action()
+            data class YesNoCancelDialogResult(val isYes: Boolean, val targetYesEvent: Any, val targetNoEvent: Any) : Action()
             data class DeleteCaptionsConfirmationDialogResult(val isDeleteOnlyEmpty: Boolean) : Action()
         }
     }
 
-    object CreateProject : Destinations()
+    data class CreateProject(val path: Path? = null) : Destinations()
     object Settings : Destinations()
     data class YesCancel(
         val title: String = "Confirmation dialog",
@@ -24,6 +25,12 @@ sealed class Destinations : NavigationContext<Destinations> {
         val width: Dp = 420.dp,
         val height: Dp = 160.dp,
         val targetDest: Destinations) : Destinations()
+    data class YesNoCancel(
+        val title: String = "Confirmation dialog",
+        val message: String,
+        val width: Dp = 420.dp,
+        val height: Dp = 160.dp,
+        val targetDestCreator: (isYes: Boolean) -> Destinations) : Destinations()
     object DeleteCaptionsConfirmation : Destinations()
     object About : Destinations()
 

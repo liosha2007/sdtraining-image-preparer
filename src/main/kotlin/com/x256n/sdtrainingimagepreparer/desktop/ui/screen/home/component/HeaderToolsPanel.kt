@@ -35,7 +35,7 @@ fun HeaderToolsPanel(
             .padding(start = 3.dp, bottom = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (state.isProjectLoaded) {
+        if (state.isProjectLoaded && state.hasData) {
             if (state.screenMode == ScreenMode.ResizeCrop) {
                 WinButton(modifier = Modifier
                     .fillMaxHeight(),

@@ -5,12 +5,19 @@ package com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import com.x256n.sdtrainingimagepreparer.desktop.common.BaseViewModel
-import com.x256n.sdtrainingimagepreparer.desktop.common.DisplayableException
+import com.x256n.sdtrainingimagepreparer.desktop.common.*
 import com.x256n.sdtrainingimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainingimagepreparer.desktop.model.KeywordModel
 import com.x256n.sdtrainingimagepreparer.desktop.usecase.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
+import java.net.URI
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
@@ -21,7 +28,8 @@ import kotlin.system.exitProcess
 
 @ExperimentalPathApi
 class HomeViewModel(
-    private val checkProject: CheckProjectUseCase,
+    private val checkProject: CheckProjectValidUseCase,
+    private val isProject: IsProjectUseCase,
     private val loadImageModels: LoadImageModelsUseCase,
     private val writeCaption: WriteCaptionUseCase,
     private val removeIncorrectThumbnails: RemoveIncorrectThumbnailsUseCase,
@@ -37,6 +45,8 @@ class HomeViewModel(
     private val deleteCaption: DeleteCaptionUseCase,
     private val convertImage: ConvertImageUseCase,
 ) : BaseViewModel<HomeState>(emptyState = HomeState()), KoinComponent {
+    private val _uiActionHandler = Channel<UIAction>()
+    val uiActionHandler = _uiActionHandler.receiveAsFlow()
 
     // region Application events
 
@@ -67,9 +77,14 @@ class HomeViewModel(
 
         val projectDirectory = event.projectDirectory
 
-        _state.value = HomeState(
-            isShowChooseProjectDirectoryDialog = false
-        )
+        checkAndOpenProject(projectDirectory)
+    }
+
+    private suspend fun createProject(event: HomeEvent.CreateProject) {
+        _uiActionHandler.send(UIAction.CreateProject(event.projectDirectory))
+    }
+
+    private suspend fun HomeViewModel.checkAndOpenProject(projectDirectory: Path) {
         checkProject(projectDirectory)
 
         removeIncorrectThumbnails(projectDirectory)
@@ -84,7 +99,7 @@ class HomeViewModel(
             .toSet()
             .toList()
 
-        val currentCaptionKeywords = extractCaptionKeywords(data[dataIndex])
+        val currentCaptionKeywords = if (data.isNotEmpty()) extractCaptionKeywords(data[dataIndex]) else emptyList()
 
         _state.value = state.value.copy(
             projectDirectory = projectDirectory,
@@ -99,10 +114,8 @@ class HomeViewModel(
         configManager.lastProjectPath = projectDirectory.toAbsolutePath().normalize().toString()
     }
 
-    private fun showOpenProjectDialog() {
-        _state.value = state.value.copy(
-            isShowChooseProjectDirectoryDialog = true
-        )
+    private suspend fun showOpenProjectDialog() {
+        _uiActionHandler.send(UIAction.ChooseProjectDirectoryDialog)
     }
 
     private fun closeProject() {
@@ -344,6 +357,7 @@ class HomeViewModel(
                         top = cropRect.top + offsetVert,
                     )
                 })
+
             is ActiveType.RightTop -> calculateBottomTopDiagonalOffsets(offset, isShiftPressed,
                 isInsideImage = { offsetHorz, offsetVert ->
                     cropRect.top + offsetVert > 0 && cropRect.right + offsetHorz < realImageSize.width
@@ -354,6 +368,7 @@ class HomeViewModel(
                         right = cropRect.right + offsetHorz,
                     )
                 })
+
             is ActiveType.RightBottom -> calculateTopBottomDiagonalOffsets(offset, isShiftPressed,
                 isInsideImage = { offsetHorz, offsetVert ->
                     cropRect.right + offsetHorz < realImageSize.width && cropRect.bottom + offsetVert < realImageSize.height
@@ -364,6 +379,7 @@ class HomeViewModel(
                         bottom = cropRect.bottom + offsetVert,
                     )
                 })
+
             is ActiveType.LeftBottom -> calculateBottomTopDiagonalOffsets(offset, isShiftPressed,
                 isInsideImage = { offsetHorz, offsetVert ->
                     cropRect.left + offsetHorz > 0 && cropRect.bottom + offsetVert < realImageSize.height
@@ -374,6 +390,7 @@ class HomeViewModel(
                         bottom = cropRect.top + cropRect.height + offsetVert,
                     )
                 })
+
             is ActiveType.Center -> {
                 cropRect.copy(
                     left = cropRect.left + offset.x,
@@ -382,6 +399,7 @@ class HomeViewModel(
                     bottom = cropRect.bottom + offset.y,
                 )
             }
+
             else -> {
                 cropRect
             }
@@ -542,6 +560,37 @@ class HomeViewModel(
         }
     }
 
+    private suspend fun handleDragAndDrop(event: HomeEvent.FilesDropped) {
+        withContext(dispatcherProvider.io) {
+            val filePath = event.filesList.map { Paths.get(URI(it)) }
+            if (filePath.size == 1 && Files.isDirectory(filePath.first())) {
+                if (isProject(filePath.first())) {
+                    checkAndOpenProject(filePath.first())
+                } else {
+                    _uiActionHandler.send(UIAction.CreateProject(filePath.first()))
+                }
+                // Is directory
+//                if (isProject(filePath.first())) {
+//                    checkAndOpenProject(filePath.first())
+//                } else {
+//                    _uiActionHandler.send(UIAction.CreateNewProjectYesNo(path = filePath.first()))
+//                }
+            } else if (filePath.isNotEmpty()) {
+                val directoryPath = filePath.first().parent
+                if (isProject(directoryPath)) {
+                    checkAndOpenProject(directoryPath)
+                } else {
+                    _uiActionHandler.send(UIAction.CreateProject(directoryPath))
+                }
+//                if (isProject(filePath.first().parent)) {
+//                    TODO("Ask for opening as project, otherwise open as list of files")
+//                } else {
+//                    TODO("Ask for creating new project, otherwise open as list of files")
+//                }
+            }
+        }
+    }
+
     private fun deleteButtonPressed() {
         // Deleting image will be processed in screen file. When screenMode is Default event will not be sent here.
     }
@@ -560,7 +609,7 @@ class HomeViewModel(
             // endregion
 
             // region Project events
-            is HomeEvent.LoadProject, is HomeEvent.OpenProject, is HomeEvent.CloseProject, is HomeEvent.DropProject -> {
+            is HomeEvent.LoadProject, is HomeEvent.CreateProject, is HomeEvent.Open, is HomeEvent.CloseProject, is HomeEvent.DropProject, is HomeEvent.FilesDropped -> {
                 onProjectEvent(event)
             }
             // endregion
@@ -605,9 +654,11 @@ class HomeViewModel(
     private suspend fun onProjectEvent(event: HomeEvent) {
         when (event) {
             is HomeEvent.LoadProject -> loadProject(event)
-            is HomeEvent.OpenProject -> showOpenProjectDialog()
+            is HomeEvent.CreateProject -> createProject(event)
+            is HomeEvent.Open -> showOpenProjectDialog()
             is HomeEvent.CloseProject -> closeProject()
             is HomeEvent.DropProject -> closeAndDropProject()
+            is HomeEvent.FilesDropped -> handleDragAndDrop(event)
             else -> throw DisplayableException("Unexpected application state: 24cf91708f36($event)")
         }
     }

@@ -1,4 +1,6 @@
-@file:OptIn(ExperimentalPathApi::class, ExperimentalPathApi::class, ExperimentalPathApi::class)
+@file:OptIn(ExperimentalPathApi::class, ExperimentalPathApi::class, ExperimentalPathApi::class,
+    ExperimentalPathApi::class
+)
 
 package com.x256n.sdtrainingimagepreparer.desktop.di
 
@@ -11,6 +13,7 @@ import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.createproject.CreateP
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.deletecaptions.DeleteCaptionsConfirmationViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.settings.SettingsViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.yescancel.YesCancelViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.yesnocancel.YesNoCancelViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.usecase.*
 import org.koin.core.module.dsl.bind
@@ -24,6 +27,7 @@ object ModulesInjection {
         single {
             HomeViewModel(
                 checkProject = get(),
+                isProject = get(),
                 loadImageModels = get(),
                 removeIncorrectThumbnails = get(),
                 extractCaptionKeywords = get(),
@@ -44,11 +48,13 @@ object ModulesInjection {
         factoryOf(::SettingsViewModel)
         factoryOf(::CreateProjectViewModel)
         factoryOf(::YesCancelViewModel)
+        factoryOf(::YesNoCancelViewModel)
         factoryOf(::DeleteCaptionsConfirmationViewModel)
     }
     val usecaseBeans = module {
         factoryOf(::InitializeProjectUseCase)
-        factoryOf(::CheckProjectUseCase)
+        factoryOf(::CheckProjectValidUseCase)
+        factoryOf(::IsProjectUseCase)
         factoryOf(::WriteCaptionUseCase)
         factoryOf(::ReadCaptionUseCase)
         factoryOf(::LoadImageModelsUseCase)

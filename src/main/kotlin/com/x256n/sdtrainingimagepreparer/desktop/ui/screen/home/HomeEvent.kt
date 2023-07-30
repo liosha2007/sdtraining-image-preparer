@@ -12,8 +12,9 @@ sealed class HomeEvent {
     // endregion
 
     // region Project events
+    data class CreateProject(val projectDirectory: Path? = null) : HomeEvent()
     data class LoadProject(val projectDirectory: Path) : HomeEvent()
-    object OpenProject : HomeEvent()
+    data class Open(val path: Path? = null) : HomeEvent()
     object CloseProject : HomeEvent()
     object DropProject : HomeEvent()
     // endregion
@@ -22,6 +23,7 @@ sealed class HomeEvent {
     object DeleteImage : HomeEvent()
     object ConvertImages : HomeEvent()
     data class ImageSizeChanged(val imageSize: Size, val imageScale: Float) : HomeEvent()
+    data class FilesDropped(val filesList: List<String>) : HomeEvent()
     data class ImageSelected(val index: Int) : HomeEvent()
     object ShowNextImage : HomeEvent()
     object ShowPrevImage : HomeEvent()
@@ -49,4 +51,10 @@ sealed class HomeEvent {
     object EscPressed : HomeEvent()
     object DeletePressed : HomeEvent()
     // endregion
+}
+
+sealed interface UIAction {
+    data class CreateNewProjectYesNo(val path: Path): UIAction
+    data class CreateProject(val path: Path? = null): UIAction
+    object ChooseProjectDirectoryDialog: UIAction
 }

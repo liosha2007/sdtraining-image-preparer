@@ -7,22 +7,22 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
 
-class CheckProjectUseCase(
+class IsProjectUseCase(
     private val dispatcherProvider: DispatcherProvider = StandardDispatcherProvider(),
     private val configManager: ConfigManager,
     private val projectConfigRepository: ProjectConfigRepository
 ) {
     private val _log = LoggerFactory.getLogger(this::class.java)
 
-    suspend operator fun invoke(projectDirectory: Path) {
+    suspend operator fun invoke(directoryToCheck: Path): Boolean {
         try {
-            projectConfigRepository.check(projectDirectory)
+            projectConfigRepository.check(directoryToCheck)
+            return true
         } catch (e: NotAProjectException) {
-            _log.error("The directory does not have project", e)
-            throw DisplayableException("The directory is not a project")
+            _log.debug("The directory does not have project", e)
         } catch (e: CantLoadProjectException) {
-            _log.error("Project checking failed", e)
-            throw DisplayableException("The project is broken")
+            _log.debug("Project checking failed", e)
         }
+        return false
     }
 }

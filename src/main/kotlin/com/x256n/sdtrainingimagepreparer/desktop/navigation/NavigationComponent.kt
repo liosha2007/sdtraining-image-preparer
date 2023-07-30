@@ -19,6 +19,7 @@ import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.createproject.CreateP
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.deletecaptions.DeleteCaptionsConfirmationDialog
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.settings.SettingsDialog
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.yescancel.YesCancelDialog
+import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.yesnocancel.YesNoCancelDialog
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.component.MainMenu
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeScreen
@@ -47,7 +48,8 @@ fun FrameWindowScope.NavigationComponent() {
         MenuBar {
             MainMenu(
                 navigator = navigator,
-                onOpenProject = { viewModel.sendEvent(HomeEvent.OpenProject) },
+                onCreateProject = { viewModel.sendEvent(HomeEvent.CreateProject()) },
+                onOpenProject = { viewModel.sendEvent(HomeEvent.Open()) },
                 onCloseProject = { viewModel.sendEvent(HomeEvent.CloseProject) },
                 onExit = { viewModel.sendEvent(HomeEvent.Exit()) },
                 onDeleteImage = { viewModel.sendEvent(HomeEvent.DeleteImage) },
@@ -61,11 +63,12 @@ fun FrameWindowScope.NavigationComponent() {
             dest = dest,
             state = state,
             sendEvent = viewModel::sendEvent,
+            uiActionHandler = viewModel.uiActionHandler,
             rootPanel = window.rootPane
         )
         when (dest) {
             is Destinations.CreateProject -> {
-                CreateProjectDialog(navigator)
+                CreateProjectDialog(navigator, dest)
             }
 
             is Destinations.Settings -> {
@@ -74,6 +77,10 @@ fun FrameWindowScope.NavigationComponent() {
 
             is Destinations.YesCancel -> {
                 YesCancelDialog(navigator, dest)
+            }
+
+            is Destinations.YesNoCancel -> {
+                YesNoCancelDialog(navigator, dest)
             }
 
             is Destinations.DeleteCaptionsConfirmation -> {
