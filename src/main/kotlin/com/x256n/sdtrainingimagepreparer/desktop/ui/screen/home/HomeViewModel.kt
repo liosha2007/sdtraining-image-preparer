@@ -10,8 +10,6 @@ import com.x256n.sdtrainingimagepreparer.desktop.manager.ConfigManager
 import com.x256n.sdtrainingimagepreparer.desktop.model.KeywordModel
 import com.x256n.sdtrainingimagepreparer.desktop.usecase.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
@@ -229,6 +227,21 @@ class HomeViewModel(
         }
     }
 
+    private fun toggleCaptionReplaceMode(event: HomeEvent.CaptionReplaceModeClicked) {
+        _state.value = state.value.copy(
+            screenMode = if (event.enable) ScreenMode.CaptionReplace else ScreenMode.Default
+        )
+    }
+
+    private fun changeReplaceSourceValue(event: HomeEvent.CaptionReplaceSourceValueChange) {
+        _log.debug("It would be useful to highlight text if it is present in keywords list on the bottom of the screen")
+    }
+
+    private suspend fun captionReplace(event: HomeEvent.CaptionReplaceApplyClicked) {
+//        TODO("Caption Replace")
+        _log.debug("captionReplace: $event")
+    }
+
     private fun changeCaptionContent(event: HomeEvent.CaptionContentChanged) {
         _state.value = state.value.copy(
             captionContent = event.value
@@ -261,9 +274,9 @@ class HomeViewModel(
 
     // region Image tools events
 
-    private fun toggleEditMode(event: HomeEvent.EditModeClicked) {
+    private fun toggleImageCropMode(event: HomeEvent.ImageCropModeClicked) {
         _state.value = state.value.copy(
-            screenMode = if (event.enable) ScreenMode.ResizeCrop else ScreenMode.Default,
+            screenMode = if (event.enable) ScreenMode.ImageCrop else ScreenMode.Default,
             cropOffset = if (event.enable) state.value.cropOffset else Offset(0f, 0f),
             cropSize = if (event.enable) state.value.cropSize else Size(
                 min(512f, state.value.realImageSize.width),
@@ -272,7 +285,7 @@ class HomeViewModel(
         )
     }
 
-    private suspend fun cropResizeImage() {
+    private suspend fun imageCrop() {
         val imageScale = state.value.imageScale
         val cropOffset = state.value.cropOffset.copy(
             x = state.value.cropOffset.x,
@@ -544,13 +557,13 @@ class HomeViewModel(
     // region Keyboard events
 
     private fun enterButtonPressed() {
-        if (state.value.screenMode == ScreenMode.ResizeCrop) {
-            sendEvent(HomeEvent.CropApplyClicked)
+        if (state.value.screenMode == ScreenMode.ImageCrop) {
+            sendEvent(HomeEvent.ImageCropApplyClicked)
         }
     }
 
     private fun escButtonPressed() {
-        if (state.value.screenMode == ScreenMode.ResizeCrop) {
+        if (state.value.screenMode == ScreenMode.ImageCrop) {
             _state.value = state.value.copy(
                 screenMode = ScreenMode.Default,
                 cropOffset = Offset(0f, 0f),
@@ -621,13 +634,13 @@ class HomeViewModel(
             // endregion
 
             // region Captions events
-            is HomeEvent.CreateAllCaptions, is HomeEvent.DeleteAllCaptions, is HomeEvent.CaptionContentChanged, is HomeEvent.KeywordSelected -> {
+            is HomeEvent.CreateAllCaptions, is HomeEvent.CaptionReplaceSourceValueChange, is HomeEvent.DeleteAllCaptions, is HomeEvent.CaptionReplaceApplyClicked, is HomeEvent.CaptionReplaceModeClicked, is HomeEvent.CaptionContentChanged, is HomeEvent.KeywordSelected -> {
                 onCaptionsEvent(event)
             }
             // endregion
 
             // region Toolbar events
-            is HomeEvent.EditModeClicked, is HomeEvent.CropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.ChangeAreaToMax, is HomeEvent.CropRectChanged, is HomeEvent.CropActiveTypeChanged -> {
+            is HomeEvent.ImageCropModeClicked, is HomeEvent.ImageCropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.ChangeAreaToMax, is HomeEvent.CropRectChanged, is HomeEvent.CropActiveTypeChanged -> {
                 onToolbarEvent(event)
             }
             // endregion
@@ -681,6 +694,9 @@ class HomeViewModel(
         when (event) {
             is HomeEvent.CreateAllCaptions -> createAllCaptions()
             is HomeEvent.DeleteAllCaptions -> deleteAllCaptions(event)
+            is HomeEvent.CaptionReplaceModeClicked -> toggleCaptionReplaceMode(event)
+            is HomeEvent.CaptionReplaceSourceValueChange -> changeReplaceSourceValue(event)
+            is HomeEvent.CaptionReplaceApplyClicked -> captionReplace(event)
             is HomeEvent.CaptionContentChanged -> changeCaptionContent(event)
             is HomeEvent.KeywordSelected -> selectKeyword(event)
             else -> throw DisplayableException("Unexpected application state: 44f67cf5f537($event)")
@@ -689,8 +705,8 @@ class HomeViewModel(
 
     private suspend fun onToolbarEvent(event: HomeEvent) {
         when (event) {
-            is HomeEvent.EditModeClicked -> toggleEditMode(event)
-            is HomeEvent.CropApplyClicked -> cropResizeImage()
+            is HomeEvent.ImageCropModeClicked -> toggleImageCropMode(event)
+            is HomeEvent.ImageCropApplyClicked -> imageCrop()
             is HomeEvent.ChangeAreaToSize -> changeAreaSize(event)
             is HomeEvent.ChangeAreaToMax -> changeAreaToMax()
             is HomeEvent.CropRectChanged -> changeCropRectangle(event)

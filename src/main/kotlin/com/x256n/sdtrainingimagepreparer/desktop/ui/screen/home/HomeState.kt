@@ -10,12 +10,13 @@ import java.nio.file.Path
 data class HomeState(
     val isLoading: Boolean = false,
     val status: Status = Status.None,
-    val projectDirectory: Path? = null,
     val data: List<ImageModel> = emptyList(),
     val dataIndex: Int = -1,
     val captionContent: String = "",
     val keywordList: List<KeywordModel> = emptyList(),
     val screenMode: ScreenMode = ScreenMode.Default,
+
+    val projectDirectory: Path? = null,
 
     // How the image was changed to be displayed
     val imageScale: Float = 1f,
@@ -55,8 +56,9 @@ data class HomeState(
 }
 
 sealed class ScreenMode {
-    object Default: ScreenMode()
-    object ResizeCrop: ScreenMode()
+    object Default : ScreenMode()
+    object ImageCrop : ScreenMode()
+    object CaptionReplace : ScreenMode()
 }
 
 sealed class ActiveType {
@@ -69,13 +71,21 @@ sealed class ActiveType {
 
     companion object {
         fun getActiveType(cursorPosition: Offset, areaPosition: Rect): ActiveType {
-            return if (areaPosition.copy(right = areaPosition.left + 10, bottom = areaPosition.top + 10).contains(cursorPosition)) {
+            return if (areaPosition.copy(right = areaPosition.left + 10, bottom = areaPosition.top + 10)
+                    .contains(cursorPosition)
+            ) {
                 LeftTop
-            } else if (areaPosition.copy(left = areaPosition.right - 10, bottom = areaPosition.top + 10).contains(cursorPosition)) {
+            } else if (areaPosition.copy(left = areaPosition.right - 10, bottom = areaPosition.top + 10)
+                    .contains(cursorPosition)
+            ) {
                 RightTop
-            } else if (areaPosition.copy(left = areaPosition.right - 10, top = areaPosition.bottom - 10).contains(cursorPosition)) {
+            } else if (areaPosition.copy(left = areaPosition.right - 10, top = areaPosition.bottom - 10)
+                    .contains(cursorPosition)
+            ) {
                 RightBottom
-            } else if (areaPosition.copy(right = areaPosition.left + 10, top = areaPosition.bottom - 10).contains(cursorPosition)) {
+            } else if (areaPosition.copy(right = areaPosition.left + 10, top = areaPosition.bottom - 10)
+                    .contains(cursorPosition)
+            ) {
                 LeftBottom
             } else if (areaPosition.contains(cursorPosition)) {
                 return Center
@@ -87,7 +97,7 @@ sealed class ActiveType {
 }
 
 sealed class Status(val text: String) {
-    object None: Status("")
-    class Error(data: String): Status(data)
-    class Info(data: String): Status(data)
+    object None : Status("")
+    class Error(data: String) : Status(data)
+    class Info(data: String) : Status(data)
 }

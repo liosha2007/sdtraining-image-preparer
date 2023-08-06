@@ -33,13 +33,16 @@ sealed class HomeEvent {
     // region Captions events
     object CreateAllCaptions : HomeEvent()
     data class DeleteAllCaptions(val isDeleteOnlyEmpty: Boolean) : HomeEvent()
+    data class CaptionReplaceModeClicked(val enable: Boolean) : HomeEvent()
+    data class CaptionReplaceApplyClicked(val searchValue: String, val replacementValue: String) : HomeEvent()
+    data class CaptionReplaceSourceValueChange(val value: String) : HomeEvent()
     data class CaptionContentChanged(val value: String) : HomeEvent()
     data class KeywordSelected(val keywordModel: KeywordModel) : HomeEvent()
     // endregion
 
     // region Image tools events
-    data class EditModeClicked(val enable: Boolean) : HomeEvent()
-    object CropApplyClicked : HomeEvent()
+    data class ImageCropModeClicked(val enable: Boolean) : HomeEvent()
+    object ImageCropApplyClicked : HomeEvent()
     data class ChangeAreaToSize(val targetSize: Float) : HomeEvent()
     object ChangeAreaToMax : HomeEvent()
     data class CropRectChanged(val offset: Offset, val isShiftPressed: Boolean) : HomeEvent()

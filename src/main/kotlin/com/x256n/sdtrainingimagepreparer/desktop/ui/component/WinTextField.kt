@@ -1,14 +1,21 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.x256n.sdtrainingimagepreparer.desktop.theme.spaces
@@ -22,6 +29,7 @@ fun WinTextField(
     fieldModifier: Modifier = Modifier.width(80.dp),
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
+    placeholder: @Composable () -> Unit = {},
     onValueChange: (String) -> Unit
 ) {
     Row(
@@ -48,6 +56,19 @@ fun WinTextField(
             value = text,
             singleLine = singleLine,
             maxLines = maxLines,
+            decorationBox = @Composable { innerTextField ->
+                // places leading icon, text field with label and placeholder, trailing icon
+                TextFieldDefaults.TextFieldDecorationBox(
+                    value = text,
+                    innerTextField = innerTextField,
+                    placeholder = placeholder,
+                    singleLine = false,
+                    enabled = true,
+                    interactionSource = remember { MutableInteractionSource() },
+                    visualTransformation = VisualTransformation.None,
+                    contentPadding = PaddingValues(0.dp)
+                )
+            },
             onValueChange = onValueChange
         )
     }

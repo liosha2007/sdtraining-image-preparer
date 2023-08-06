@@ -152,7 +152,7 @@ fun CenterPreviewPanel(
                                 contentDescription = state[if (state.dataIndex > state.data.lastIndex) state.data.lastIndex else state.dataIndex].imagePath.name,
                                 contentScale = ContentScale.Fit
                             )
-                            if (state.screenMode == ScreenMode.ResizeCrop) {
+                            if (state.screenMode == ScreenMode.ImageCrop) {
                                 Canvas(
                                     modifier = Modifier
                                         .fillMaxSize()

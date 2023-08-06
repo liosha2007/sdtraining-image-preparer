@@ -200,7 +200,7 @@ fun HomeScreen(
 
         HeaderToolsPanel(
             modifier = Modifier
-                .height(24.dp),
+                .height(32.dp),
             navigator = navigator,
             state = state,
             sendEvent = sendEvent
