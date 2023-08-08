@@ -19,6 +19,7 @@ class HomeViewModel(
     private val imageEventHandler: ImageHomeEventHandler,
     private val captionEventHandler: CaptionHomeEventHandler,
     private val cropEventHandler: CropHomeEventHandler,
+    private val replaceEventHandler: ReplaceHomeEventHandler,
 ) : BaseViewModel<HomeState>(emptyState = HomeState()), KoinComponent {
     private val _uiActionChannel = Channel<UIAction>()
     val uiActionHandler = _uiActionChannel.receiveAsFlow()
@@ -87,7 +88,7 @@ class HomeViewModel(
             // endregion
 
             // region Captions events
-            is HomeEvent.CreateAllCaptions, is HomeEvent.CaptionReplaceSourceValueChange, is HomeEvent.DeleteAllCaptions, is HomeEvent.CaptionReplaceApplyClicked, is HomeEvent.CaptionReplaceModeClicked, is HomeEvent.CaptionContentChanged, is HomeEvent.KeywordSelected -> {
+            is HomeEvent.CreateAllCaptions, is HomeEvent.DeleteAllCaptions, is HomeEvent.CaptionContentChanged, is HomeEvent.KeywordSelected -> {
                 captionEventHandler.handleEvent(
                     event,
                     _state,
@@ -97,9 +98,20 @@ class HomeViewModel(
             }
             // endregion
 
-            // region Captions events
+            // region Crop events
             is HomeEvent.ImageCropModeClicked, is HomeEvent.ImageCropApplyClicked, is HomeEvent.ChangeAreaToSize, is HomeEvent.ChangeAreaToMax, is HomeEvent.CropRectChanged, is HomeEvent.CropActiveTypeChanged -> {
                 cropEventHandler.handleEvent(
+                    event,
+                    _state,
+                    uiActionChannel = _uiActionChannel,
+                    sendEvent = ::sendEvent
+                )
+            }
+            // endregion
+
+            // region Replace events
+            is HomeEvent.CaptionReplaceSourceValueChange, is HomeEvent.CaptionReplaceApplyClicked, is HomeEvent.CaptionReplaceModeClicked -> {
+                replaceEventHandler.handleEvent(
                     event,
                     _state,
                     uiActionChannel = _uiActionChannel,

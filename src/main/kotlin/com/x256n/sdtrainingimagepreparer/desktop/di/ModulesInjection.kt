@@ -32,6 +32,7 @@ object ModulesInjection {
                 imageEventHandler = get(),
                 captionEventHandler = get(),
                 cropEventHandler = get(),
+                replaceEventHandler = get(),
             )
         }
         factoryOf(::AboutViewModel)
@@ -47,6 +48,7 @@ object ModulesInjection {
         singleOf(::ImageHomeEventHandler)
         singleOf(::CaptionHomeEventHandler)
         singleOf(::CropHomeEventHandler)
+        singleOf(::ReplaceHomeEventHandler)
     }
     val usecaseBeans = module {
         factoryOf(::InitializeProjectUseCase)

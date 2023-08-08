@@ -4,7 +4,6 @@ import androidx.compose.runtime.MutableState
 import com.x256n.sdtrainingimagepreparer.desktop.common.DisplayableException
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeEvent
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeState
-import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.ScreenMode
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.UIAction
 import com.x256n.sdtrainingimagepreparer.desktop.usecase.*
 import kotlinx.coroutines.channels.Channel
@@ -27,9 +26,6 @@ class CaptionHomeEventHandler(
         when (event) {
             is HomeEvent.CreateAllCaptions -> createAllCaptions(state)
             is HomeEvent.DeleteAllCaptions -> deleteAllCaptions(event, state)
-            is HomeEvent.CaptionReplaceModeClicked -> toggleCaptionReplaceMode(event, state)
-            is HomeEvent.CaptionReplaceSourceValueChange -> changeReplaceSourceValue(event)
-            is HomeEvent.CaptionReplaceApplyClicked -> captionReplace(event)
             is HomeEvent.CaptionContentChanged -> changeCaptionContent(event, state)
             is HomeEvent.KeywordSelected -> selectKeyword(event, state)
             else -> throw DisplayableException("Unexpected application state: 44f67cf5f537($event)")
@@ -46,21 +42,6 @@ class CaptionHomeEventHandler(
         state.value.data.forEach {
             deleteCaption(it, isDeleteOnlyEmpty = event.isDeleteOnlyEmpty)
         }
-    }
-
-    private fun toggleCaptionReplaceMode(event: HomeEvent.CaptionReplaceModeClicked, state: MutableState<HomeState>) {
-        state.value = state.value.copy(
-            screenMode = if (event.enable) ScreenMode.CaptionReplace else ScreenMode.Default
-        )
-    }
-
-    private fun changeReplaceSourceValue(event: HomeEvent.CaptionReplaceSourceValueChange) {
-        _log.debug("It would be useful to highlight text if it is present in keywords list on the bottom of the screen")
-    }
-
-    private suspend fun captionReplace(event: HomeEvent.CaptionReplaceApplyClicked) {
-//        TODO("Caption Replace")
-        _log.debug("captionReplace: $event")
     }
 
     private fun changeCaptionContent(event: HomeEvent.CaptionContentChanged, state: MutableState<HomeState>) {
