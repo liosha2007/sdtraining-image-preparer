@@ -15,6 +15,7 @@ import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.settings.SettingsView
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.yescancel.YesCancelViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.dialog.yesnocancel.YesNoCancelViewModel
 import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.HomeViewModel
+import com.x256n.sdtrainingimagepreparer.desktop.ui.screen.home.eventhandler.*
 import com.x256n.sdtrainingimagepreparer.desktop.usecase.*
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
@@ -26,22 +27,11 @@ object ModulesInjection {
     val viewmodelBeans = module {
         single {
             HomeViewModel(
-                checkProject = get(),
-                isProject = get(),
-                loadImageModels = get(),
-                removeIncorrectThumbnails = get(),
-                extractCaptionKeywords = get(),
-                writeCaption = get(),
-                joinCaption = get(),
-                splitCaption = get(),
-                cropResizeImage = get(),
-                createNewAndMergeExistingCaptions = get(),
-                configManager = get(),
-                dropProject = get(),
-                deleteImage = get(),
-                createCaptionIfNotExist = get(),
-                deleteCaption = get(),
-                convertImage = get()
+                applicationEventHandler = get(),
+                projectEventHandler = get(),
+                imageEventHandler = get(),
+                captionEventHandler = get(),
+                cropEventHandler = get(),
             )
         }
         factoryOf(::AboutViewModel)
@@ -50,6 +40,13 @@ object ModulesInjection {
         factoryOf(::YesCancelViewModel)
         factoryOf(::YesNoCancelViewModel)
         factoryOf(::DeleteCaptionsConfirmationViewModel)
+    }
+    val eventhandlerBean = module {
+        singleOf(::ApplicationHomeEventHandler)
+        singleOf(::ProjectHomeEventHandler)
+        singleOf(::ImageHomeEventHandler)
+        singleOf(::CaptionHomeEventHandler)
+        singleOf(::CropHomeEventHandler)
     }
     val usecaseBeans = module {
         factoryOf(::InitializeProjectUseCase)

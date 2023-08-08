@@ -81,6 +81,7 @@ fun configureKoin() {
             }
         )
         modules(ModulesInjection.viewmodelBeans)
+        modules(ModulesInjection.eventhandlerBean)
         modules(ModulesInjection.usecaseBeans)
         modules(ModulesInjection.managerBeans)
         modules(ModulesInjection.repositoryBeans)
